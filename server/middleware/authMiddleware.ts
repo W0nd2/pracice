@@ -1,7 +1,7 @@
 import * as express from 'express';
 const jwt = require('jsonwebtoken')
 
-module.exports = function( req:express.Request, res:express.Response, next:express.NextFunction){
+module.exports = function( req:express.Request, res:express.Response, next:express.NextFunction){ //мб реквест заменить на ени
     try {
         const token = req.headers.authorization.split(' ')[1]
         if(!token)
