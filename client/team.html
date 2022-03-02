@@ -5,11 +5,12 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./styles/login.css">
-    <title>Login</title>
+    <link rel="stylesheet" href="./styles/team.css">
+    
+    <title>Team</title>
 </head>
 
-<body>
+<body onload="teamMembers()">
     <!-- HEADER -->
 
     <div class="header">
@@ -22,7 +23,6 @@
             <ul class="header-title-txt">
                 <li class="header-title_registratin"><a href="registration.html"> Registration</a> </li>
                 <li class="header-title_login"><a href="login.html">Login</a></li>
-                
                 <li class="header-title_queue"><a href="queue.html">Queue</a></li>
                 <li class="header-title_team"><a href="team.html">Team</a></li>
                 <li class="header-title_profile"><a href="profile.html"> Profile </a></li>
@@ -32,15 +32,10 @@
 
     <!-- BODY -->
 
-    <div class="body">
-        <div class="login">
-            <span class="login-txt">Email</span>
-            <input id="login-email" type="text" placeholder="test@test.com">
-            <span class="login-txt">Password</span>
-            <input id="login-password" type="password" placeholder="password">
-            <button id="login-button" onclick="loginUser()">Подтвердить</button>
-            <span class="login-txt">Забыли пароль(введите свой Email в поле для Email)</span>
-            <button id="login-resetpassword" onclick="resetPass()">Забыли пароль</button>
+    <div id="body">
+        <span> Ваша команда состоит из таких членов: </span>
+        <div id="team">
+            <!-- тут будет список пользователей которые состоят в команде -->
         </div>
     </div>
 
@@ -51,7 +46,7 @@
     </div>
 
     <!-- SCRIPT -->
-    <script src="./scripts/login.js"></script>
+    <script src="./scripts/team.js"></script>
 </body>
 
 </html>

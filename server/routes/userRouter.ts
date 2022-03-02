@@ -2,55 +2,61 @@ const Rout = require('express')
 const userRoutes = new Rout()
 import {body, check} from 'express-validator'
 const userController = require('../controllers/userController')
+const teamController = require('../controllers/teamController')
 const authMiddleware = require('../middleware/authMiddleware')
-const isLogedIn = require('../middleware/logedGoogleMiddleware')
-const Role = require('../middleware/checkRoleMiddleware')
-import passport from 'passport';
 
 //возможно не надо делать это
 // userRoutes.get('/checklogin', authMiddleware, userController.checkLogin);
 // userRoutes.get('/role', authMiddleware, userController.checkRole);
 
-
+//просмотр профайла своего
 userRoutes.get('/profile', authMiddleware, userController.checkProfile);
 
 //  password
 
-userRoutes.get('/password/change',[
+// запрос на отправку письма на почту
+userRoutes.post('/password/change',[
     //body('email', 'Incorrect email').isString().isEmail()
-    
-], authMiddleware, userController.changePassword);
+    body('email', 'Incorrect email').isEmail()
+], userController.changePassword);
 
+// изменение пароля
 userRoutes.path('/password/:link',[
+    
     body('password', 'Incorrect password. Password must have from 5 to 25 characters').isString().isLength({min:5,max:25})
-], authMiddleware, userController.forgotPassport);
+], userController.forgotPassport);
+
 //userRoutes.get('/team', authMiddleware, userController.checkTeam);
 
 
 
 // PATCH
+
+// изменение логина
 userRoutes.patch('/login/change',[
-    body('login','Incorrect login').isString().matches(/^[A-Z]+[a-zA-z]+$/).isLength({min:2,max:25})
+    body('newLogin','Incorrect login').isString().isLength({min:2,max:25})
 ], authMiddleware, userController.changeLogin);
 
+// изменение аватара
 userRoutes.patch('/avatar/change', authMiddleware, userController.changeAvatar);
 
 
 // TEAM
 
 // отправка запроса на регистрацию в команду
-userRoutes.post('/newTeamMember',authMiddleware,userController.newTeamMember);
-
-// отправка запроса на выход из очереди
-userRoutes.delete('/declineQueue',authMiddleware,userController.declineQueue);
-
-// просмотр всех участников команды
-userRoutes.get('/teamMembers',authMiddleware, userController.teamMembers);
-
-// просмотр всех членов команд
-userRoutes.get('/allMembers',authMiddleware, userController.allMembers);
+userRoutes.post('/newTeamMember',authMiddleware,teamController.newTeamMember);
 
 // запрос на переход в другую команду
-userRoutes.post('/memberToAnotherTeam',authMiddleware, userController.changeComand)
+userRoutes.post('/memberToAnotherTeam',authMiddleware, teamController.changeComand)
+
+// отправка запроса на выход из очереди
+userRoutes.delete('/declineQueue',authMiddleware,teamController.declineQueue);
+
+// просмотр всех участников команды
+userRoutes.get('/teamMembers',authMiddleware, teamController.teamMembers);
+
+// просмотр всех членов команд
+userRoutes.get('/allMembers',authMiddleware, teamController.allMembers);
+
 
 module.exports = userRoutes

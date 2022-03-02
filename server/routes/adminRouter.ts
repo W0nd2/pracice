@@ -1,21 +1,20 @@
 const Rout = require('express')
 const adminRoutes = new Rout()
 import {check,body} from 'express-validator'
-const userController = require('../controllers/userController')
 const authMiddleware = require('../middleware/authMiddleware')
-const isLogedIn = require('../middleware/logedGoogleMiddleware')
+const adminController = require('../controllers/adminController')
 const Role = require('../middleware/checkRoleMiddleware')
-import passport from 'passport';
 
 // MANAGER
 
 // MANAGER POST
 
+//вход под аккаунтом манеджера
 adminRoutes.post('/login/manager',[
     body('email', 'Incorrect email').isString().isEmail(),
     body('password', 'Incorrect password. Password must have from 5 to 25 characters').isString().isLength({min:5,max:25}),
     Role(['ADMIN'])
-], userController.loginManager);//вход под аккаунтом манеджера
+], adminController.loginManager);              
 
 //adminRoutes.post('/comandAdd', [authMiddleware,Role(['ADMIN'])], userController.comandAdd)
 // MANAGER GET
@@ -31,42 +30,76 @@ adminRoutes.post('/login/manager',[
 // ADMIN POST
 
 // ADMIN GET
-adminRoutes.get('/managerByID', [authMiddleware,Role(['ADMIN'])], userController.getManagerById);//полная информация про менеджера по ID
 
-adminRoutes.get('/allManagers', [authMiddleware,Role(['ADMIN'])], userController.getManagers);//полная информация про всех менеджеров
+//полная информация про менеджера по ID
+adminRoutes.get('/managerByID',[
+    authMiddleware,Role(['ADMIN'])
+], adminController.getManagerById);             
+
+//полная информация про всех менеджеров
+adminRoutes.get('/allManagers',[
+    authMiddleware,Role(['ADMIN'])
+], adminController.getManagers);                
 
 
 
 // ADMIN PATCH
+
+//блокировка пользователя
 adminRoutes.patch('/blockUser', [
     authMiddleware,Role(['ADMIN'])
-], userController.blockUser);               //блокировка пользователя
+], adminController.blockUser);                  
 
+//разблокировка пользователя
 adminRoutes.patch('/unblockUser', [
     authMiddleware,Role(['ADMIN'])
-], userController.unblockUser);             //разблокировка пользователя
+], adminController.unblockUser);                
 
-adminRoutes.patch('/confirmManager', [authMiddleware,Role(['ADMIN'])],userController.confirmManager);//подтверждение регистрации менеджера
-adminRoutes.patch('/decline', [authMiddleware,Role(['ADMIN'])],userController.declineManager);//отклоняет регистрацию менеджера
+//подтверждение регистрации менеджера
+adminRoutes.patch('/confirmManager',[
+    authMiddleware,Role(['ADMIN'])
+],adminController.confirmManager);              
+
+//отклоняет регистрацию менеджера
+adminRoutes.patch('/decline',[
+    authMiddleware,Role(['ADMIN'])
+],adminController.declineManager);              
 
 // MANAGER + ADMIN
 
-adminRoutes.get('/userById', [authMiddleware,Role(['MANAGER','ADMIN'])] , userController.getUserById);//полная информация про пользователя по ID
+//полная информация про пользователя по ID
+adminRoutes.get('/userById', [
+    authMiddleware,Role(['MANAGER','ADMIN'])
+] , adminController.getUserById);               
 
-adminRoutes.get('/queue',[authMiddleware,Role(['MANAGER','ADMIN'])], userController.getqueue);
+
+
 
 // TEAM
 
+//получить очередь запросов
+adminRoutes.get('/queue',[
+    authMiddleware,Role(['MANAGER','ADMIN'])
+], adminController.getqueue);
+
 //  Удаление из таблицы запросов на вступление в окманду
-adminRoutes.delete('/declineByManager',[authMiddleware,Role(['MANAGER','ADMIN'])],userController.declineByManager);
+adminRoutes.delete('/declineByManager',[
+    authMiddleware,Role(['MANAGER','ADMIN'])
+], adminController.declineByManager);
 
 // подтверждение запроса на вступление в команду
-adminRoutes.post('/confirmMember',[authMiddleware,Role(['MANAGER','ADMIN'])],userController.confirmMember)
+adminRoutes.post('/confirmMember',[
+    authMiddleware,Role(['MANAGER','ADMIN'])
+], adminController.confirmMember)
 
 // подтверждение на переход пользователя в другую команду
-adminRoutes.post('/confirmToAnotherTeam',[authMiddleware,Role(['MANAGER','ADMIN'])], userController.confirmToAnotherTeam)
+adminRoutes.post('/confirmToAnotherTeam',[
+    authMiddleware,Role(['MANAGER','ADMIN'])
+], adminController.confirmToAnotherTeam)
 
 // отклонене запроса пользоватля на переход в другую команду
-adminRoutes.delete('/declineToAnotherTeam',[authMiddleware,Role(['MANAGER','ADMIN'])], userController.declineToAnotherTeam)
+adminRoutes.delete('/declineToAnotherTeam',[
+    authMiddleware,Role(['MANAGER','ADMIN'])
+], adminController.declineToAnotherTeam)
 
 module.exports = adminRoutes

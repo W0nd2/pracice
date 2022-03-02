@@ -1,19 +1,18 @@
 const webtoken = require('jsonwebtoken')
 
+class WebToken {
+    genereteJwt(id: number, email: string, login: string, role: string) {
+        return webtoken.sign(
+            { id, email, login, role },//payload
+            process.env.SECRET_KEY,
+            { expiresIn: '12h' }
+        )
+    }
 
-module.exports = function (id: number, email: string, login: string, role: string){
-    return webtoken.sign(
-        { id, email, login, role },//payload
-        process.env.SECRET_KEY,
-        { expiresIn: '12h' }
-    )
+    decodeJWT(token: string) {
+    const decoded = webtoken.verify(token, process.env.SECRET_KEY)
+    return decoded
+    }
 }
 
-// function decodeJWT(token:string){
-//     const decoded = jwt.verify(token, process.env.SECRET_KEY)
-//     return decoded
-// }
-
-// module.exports = {
-//     generateJWT,decodeJWT
-// }
+module.exports = new WebToken()

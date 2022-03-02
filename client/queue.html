@@ -5,11 +5,11 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./styles/login.css">
-    <title>Login</title>
+    <link rel="stylesheet" href="./styles/queue.css">
+    <title>Queue</title>
 </head>
 
-<body>
+<body onload="getQueue()">
     <!-- HEADER -->
 
     <div class="header">
@@ -32,16 +32,8 @@
 
     <!-- BODY -->
 
-    <div class="body">
-        <div class="login">
-            <span class="login-txt">Email</span>
-            <input id="login-email" type="text" placeholder="test@test.com">
-            <span class="login-txt">Password</span>
-            <input id="login-password" type="password" placeholder="password">
-            <button id="login-button" onclick="loginUser()">Подтвердить</button>
-            <span class="login-txt">Забыли пароль(введите свой Email в поле для Email)</span>
-            <button id="login-resetpassword" onclick="resetPass()">Забыли пароль</button>
-        </div>
+    <div id="body">
+        <!-- <button id="registration-button" onclick="getQueue()">Показать очередь</button> -->
     </div>
 
     <!-- FOOTER -->
@@ -51,7 +43,7 @@
     </div>
 
     <!-- SCRIPT -->
-    <script src="./scripts/login.js"></script>
+    <script src="./scripts/queue.js"></script>
 </body>
 
 </html>
