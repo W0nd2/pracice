@@ -10,26 +10,27 @@ const blockService = require('../services/blockService')
 class AdminService {
     // -------- MANAGER --------
 
-    async loginManager(email: string, password: string) {
-        let user = await Model.User.findOne({ where: { email } })
-        if (!user) {
-            return ApiError.internal('Пользователя с таким email не существует')
-        }
-        if (user.role != "MANAGER") {
-            return ApiError.internal('Пользователь не отправлял заявку на роль MANAGER')
-        }
-        //проверка на то что админ подтвердил регистрацию
-        if (!user.managerActive) {
-            return ApiError.internal('Администратор ещё не подтвердил заявку на роль MANAGER')
-        }
-        return user
-    }
+    // async loginManager(email: string, password: string) {
+    //     let user = await Model.User.findOne({ where: { email } })
+    //     if (!user) {
+    //         return ApiError.internal('Пользователя с таким email не существует')
+    //     }
+    //     if (user.role != "MANAGER") {
+    //         return ApiError.internal('Пользователь не отправлял заявку на роль MANAGER')
+    //     }
+    //     //проверка на то что админ подтвердил регистрацию
+    //     if (!user.managerActive) {
+    //         return ApiError.internal('Администратор ещё не подтвердил заявку на роль MANAGER')
+    //     }
+    //     return user
+    // }
 
     // -------- MANAGER --------
 
     // -------- ADMIN --------
 
     async confirmManager(id: number, reason: string) {
+        console.log(id,reason)
         let user = await Model.User.findOne({ where: { id } })
         if (!user) {
             return ApiError.internal('Пользователя с таким email не существует')
@@ -73,18 +74,19 @@ class AdminService {
     }
 
     async getManagerById(id: number) {
-        let manager = await Model.User.find({ where: { id } })
+        let manager = await Model.User.findOne({ where: { id } })
         if (!manager) {
             return ApiError.internal('Пользователя с таким ID не существует')
         }
-        if (manager.role != 'MANAGER') {
+        
+        if (manager.roleId != '2') {
             return ApiError.internal('Пользователь не являеться MANAGER')
         }
         return manager
     }
 
-    async getManagers(role: string) {
-        let managers = await Model.User.findAll({ where: { role } })
+    async getManagers(roleId: string) {
+        let managers = await Model.User.findAll({ where: { roleId } })
         return managers;
     }
 
@@ -98,7 +100,7 @@ class AdminService {
         if (!user) {
             return ApiError.internal('Пользователя с таким ID не существует')
         }
-        if (user.role == "MANAGER") {
+        if (user.roleId == 2) {
             if (!user.managerActive) {
                 return ApiError.internal('Администратор ещё не подтвердил заявку на роль MANAGER')
             }

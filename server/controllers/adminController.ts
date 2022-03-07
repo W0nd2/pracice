@@ -57,7 +57,8 @@ class AdminController{
 
     async getManagerById(req: express.Request, res: express.Response, next: express.NextFunction){
         try {
-            const{id} = req.body
+            const{id} = req.query
+            console.log(id)
             let manager = await adminService.getManagerById(id)
             return res.json(manager)
         } catch (error) {
@@ -68,8 +69,10 @@ class AdminController{
 
     async getManagers(req: express.Request, res: express.Response, next: express.NextFunction){
         try {
-            const{role} = req.body
-            let managers = await adminService.getManagers(role);
+            // const{roleId} = req.body
+            // console.log(roleId)
+            // let managers = await adminService.getManagers(roleId);
+            let managers = await adminService.getManagers(2);
             return res.json(managers)
         } catch (error) {
             console.log(error)

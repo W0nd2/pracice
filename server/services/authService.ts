@@ -33,6 +33,10 @@ class AuthService {
         if (!user) {
             return ApiError.internal('Пользователя с таким email не существует')
         }
+        if(user.roleId == 2 && !user.managerActive)
+        {
+            return ApiError.internal('Администратор ещё не подтвержил вашу заявку')
+        }
         if (user.accountType === 'Google') {
             return ApiError.internal('Пользователь зареистрированый')
         }
