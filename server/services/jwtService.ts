@@ -1,4 +1,4 @@
-const webtoken = require('jsonwebtoken')
+import webtoken from 'jsonwebtoken'
 
 class WebToken {
     genereteJwt(id: number, email: string, login: string, role: string) {
@@ -15,4 +15,4 @@ class WebToken {
     }
 }
 
-module.exports = new WebToken()
+export default new WebToken()

@@ -1,34 +1,17 @@
 import * as express from 'express';
 import { validationResult } from 'express-validator';
-//const jwt = require('jsonwebtoken')
-const userService = require('../services/userService')
-const adminService = require('../services/adminService')
-const jwtService = require('../services/jwtService')
-const roleService = require('../services/roleService')
-const blockService = require('../services/blockService')
+import ApiError from '../error/ApiError';
+import adminService from '../services/adminService';
+import jwtService from '../services/jwtService';
+import roleService from '../services/roleService';
+import blockService from '../services/blockService';
 
 class AdminController{
+
+
+    
     // -------- MANAGER --------
-
-    async loginManager(req: express.Request, res: express.Response, next: express.NextFunction){
-        try {
-            const errors = validationResult(req)
-            if(!errors.isEmpty())
-            {
-                return res.status(400).json({errors});
-            }
-            const{email, password} = req.body;
-            let user = await adminService.loginManager(email,password)
-            let role = await roleService.findRole(user.roleId)
-            
-            let token = jwtService.genereteJwt(user.id, user.email, user.login, role)
-            return res.json({token});
-        } catch (error) {
-            console.log(error)
-            return res.status(500).json({ message: 'Error' });
-        }
-    }
-
+ 
     // -------- MANAGER --------
 
     // -------- ADMIN --------
@@ -40,7 +23,7 @@ class AdminController{
             return res.json(user)
         } catch (error) {
             console.log(error)
-            return res.status(500).json({ message: 'Error' });
+            return ApiError.internal(error);
         }
     }
 
@@ -51,7 +34,7 @@ class AdminController{
             return res.json(user)
         } catch (error) {
             console.log(error)
-            return res.status(500).json({ message: 'Error' });
+            return ApiError.internal(error);
         }
     }
 
@@ -59,24 +42,23 @@ class AdminController{
         try {
             const{id} = req.query
             console.log(id)
-            let manager = await adminService.getManagerById(id)
+            let manager = await adminService.getManagerById(Number(id))
             return res.json(manager)
         } catch (error) {
             console.log(error)
-            return res.status(500).json({ message: 'Error' });
+            return ApiError.internal(error);
         }
     }
 
     async getManagers(req: express.Request, res: express.Response, next: express.NextFunction){
         try {
-            // const{roleId} = req.body
+            const roleId = 2
             // console.log(roleId)
-            // let managers = await adminService.getManagers(roleId);
-            let managers = await adminService.getManagers(2);
+            let managers = await adminService.getManagers(String(roleId));
             return res.json(managers)
         } catch (error) {
             console.log(error)
-            return res.status(500).json({ message: 'Error' });
+            return ApiError.internal(error);
         }
     }
 
@@ -89,7 +71,7 @@ class AdminController{
             return res.json(block)
         } catch (error) {
             console.log(error)
-            return res.status(500).json({ message: 'Error' });
+            return ApiError.internal(error);
         }
     }
 
@@ -102,7 +84,7 @@ class AdminController{
             return res.json(block)
         } catch (error) {
             console.log(error)
-            return res.status(500).json({ message: 'Error' });
+            return ApiError.internal(error);
         }
     }
 
@@ -117,7 +99,7 @@ class AdminController{
             return res.json(user)
         } catch (error) {
             console.log(error)
-            return res.status(500).json({ message: 'Error' });
+            return ApiError.internal(error);
         }
     }
 
@@ -127,16 +109,27 @@ class AdminController{
     // -------- TEAM --------
 
     async confirmToAnotherTeam(req: express.Request, res: express.Response, next: express.NextFunction){
-        const{userId, comandId} = req.body
-        let newTeamMember = await adminService.confirmMemberToAnTeam(userId, comandId)
-        return res.json(newTeamMember)
+        try {
+            const{userId, comandId} = req.body
+            let newTeamMember = await adminService.confirmMemberToAnTeam(userId, comandId)
+            return res.json(newTeamMember)
+        } catch (error) {
+            console.log(error)
+            ApiError.internal(error)
+        }
     }
 
     async declineToAnotherTeam(req: express.Request, res: express.Response, next: express.NextFunction){
-        const{userId, comandId} = req.body
-        let newTeamMember = await adminService.declineToAnotherTeam(userId)
-        return res.json({message:"Пользователь был удален из очереди и не перенесен в другую команду"})
-        //возможно просто переделать таблицу чтобы было поле с данными что пользователь уже состоит в команде
+        try {
+            const{userId, comandId} = req.body
+            let newTeamMember = await adminService.declineToAnotherTeam(userId)
+            return res.json({message:"Пользователь был удален из очереди и не перенесен в другую команду"})
+            //возможно просто переделать таблицу чтобы было поле с данными что пользователь уже состоит в команде
+        } catch (error) {
+            console.log(error)
+            ApiError.internal(error)
+        }
+        
     }
 
     async confirmMember(req: express.Request, res: express.Response, next: express.NextFunction){
@@ -146,7 +139,7 @@ class AdminController{
             return res.json(newTeamMember)
         } catch (error) {
             console.log(error)
-            return res.status(500).json({ message: 'Error' });
+            return ApiError.internal(error);
         }
     }
 
@@ -159,7 +152,7 @@ class AdminController{
             return res.json({message:`Пользователь ${userId} удален с очереди менеджером`, queue})
         } catch (error) {
             console.log(error)
-            return res.status(500).json({ message: 'Error' });
+            return ApiError.internal(error);
         }
     }
 
@@ -171,12 +164,23 @@ class AdminController{
             return res.json({queue})
         } catch (error) {
             console.log(error)
-            return res.status(500).json({ message: 'Error' });
+            return ApiError.internal(error);
         }
     }
 
+
+    async getmembers(req: express.Request, res: express.Response, next: express.NextFunction){
+        try {
+            const {id} = req.body;
+            const members = adminService.getmembers(id)
+            return res.json(members)
+        } catch (error) {
+            console.log(error)
+            return ApiError.internal(error);
+        }
+    }
     // -------- TEAM --------
 
 }
 
-module.exports = new AdminController()
+export default new AdminController()

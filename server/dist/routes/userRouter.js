@@ -5,24 +5,43 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Rout = require('express');
 const userRoutes = new Rout();
-const userController = require('../controllers/userController');
-const authMiddleware = require('../middleware/authMiddleware');
-const isLogedIn = require('../middleware/logedGoogleMiddleware');
-const passport_1 = __importDefault(require("passport"));
-// auth
-// POST
-userRoutes.post('/login', userController.login);
-userRoutes.post('/registration', userController.registration);
-// GET
-userRoutes.get('/auth', authMiddleware, userController.checkJwt);
-// GET GOOGLE
-userRoutes.get('/google', passport_1.default.authenticate('google', { scope: ['email', 'profile'] }));
-userRoutes.get('/google/callback', passport_1.default.authenticate('google', {
-    successRedirect: '/auth/google/success',
-    failureRedirect: '/auth/google/failure'
-}));
-userRoutes.get('/google/success', isLogedIn, userController.successGoogleAuth);
-userRoutes.get('/google/failure', userController.failureGoogleAuth);
-userRoutes.get('/google/logout', userController.logoutGoogle);
-module.exports = userRoutes;
+const express_validator_1 = require("express-validator");
+const userController_1 = __importDefault(require("../controllers/userController"));
+const teamController_1 = __importDefault(require("../controllers/teamController"));
+const authMiddleware_1 = __importDefault(require("../middleware/authMiddleware"));
+//возможно не надо делать это
+// userRoutes.get('/checklogin', authMiddleware, userController.checkLogin);
+// userRoutes.get('/role', authMiddleware, userController.checkRole);
+//просмотр профайла своего
+userRoutes.get('/profile', authMiddleware_1.default, userController_1.default.checkProfile);
+//  password
+// запрос на отправку письма на почту
+userRoutes.post('/password/change', [
+    //body('email', 'Incorrect email').isString().isEmail()
+    (0, express_validator_1.body)('email', 'Incorrect email').isEmail()
+], userController_1.default.changePassword);
+// изменение пароля
+userRoutes.patch('/password', [
+    (0, express_validator_1.body)('password', 'Incorrect password. Password must have from 5 to 25 characters').isString().isLength({ min: 5, max: 25 })
+], userController_1.default.forgotPassword);
+//userRoutes.get('/team', authMiddleware, userController.checkTeam);
+// PATCH
+// изменение логина
+userRoutes.patch('/login/change', [
+    (0, express_validator_1.body)('newLogin', 'Incorrect login').isString().isLength({ min: 2, max: 25 })
+], authMiddleware_1.default, userController_1.default.changeLogin);
+// изменение аватара
+userRoutes.patch('/avatar/change', authMiddleware_1.default, userController_1.default.changeAvatar);
+// TEAM
+// отправка запроса на регистрацию в команду
+userRoutes.post('/newTeamMember', authMiddleware_1.default, teamController_1.default.newTeamMember);
+// запрос на переход в другую команду
+userRoutes.post('/memberToAnotherTeam', authMiddleware_1.default, teamController_1.default.changeComand);
+// отправка запроса на выход из очереди
+userRoutes.delete('/declineQueue', authMiddleware_1.default, teamController_1.default.declineQueue);
+// просмотр всех участников команды
+userRoutes.get('/teamMembers', authMiddleware_1.default, teamController_1.default.teamMembers);
+// просмотр всех членов команд
+userRoutes.get('/allMembers', authMiddleware_1.default, teamController_1.default.allMembers);
+exports.default = userRoutes;
 //# sourceMappingURL=userRouter.js.map

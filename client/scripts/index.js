@@ -30,21 +30,25 @@ function allMembers() {
             let secondComand = document.getElementById('secondComand-members');
             
             for (let index = 0; index < res.teams.length; index++) {
-                let newMember = `
-                
-                    <span>${res.teams[index].userId}</span>
-                
-                `
-                if (res.teams[index].comandId == 1) {
-                    const member = document.createElement('div')
-                    member.innerHTML = newMember
-                    firstComand.appendChild(member)
+                for (let userIndex = 0; userIndex < res.teams[index].users.length; userIndex++) {
+                    let newMember = `
+                    
+                        <span>${res.teams[index].users[userIndex].email}</span>
+                    
+                    `
+                    if (res.teams[index].comandName == '111') {
+                        const member = document.createElement('div')
+                        member.innerHTML = newMember
+                        firstComand.appendChild(member)
+                    }
+                    else {
+                        const member = document.createElement('div')
+                        member.innerHTML = newMember
+                        secondComand.appendChild(member)
+                    }
+                    
                 }
-                else {
-                    const member = document.createElement('div')
-                    member.innerHTML = newMember
-                    secondComand.appendChild(member)
-                }
+                
             }
 
 

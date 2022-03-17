@@ -1,8 +1,7 @@
 import * as express from 'express';
-//const jwt = require('jsonwebtoken')
-const userService = require('../services/userService')
-const teamService = require('../services/teamService')
-const jwtService =require('../services/jwtService')
+import ApiError from'../error/ApiError';
+import teamService from '../services/teamService';
+import adminService from '../services/adminService';
 
 class TeamController{
     // -------- TEAM --------
@@ -11,39 +10,38 @@ class TeamController{
     async newTeamMember(req: express.Request, res: express.Response, next: express.NextFunction)
     {
         try {
-            const {id} = jwtService.decodeJWT(req.headers.authorization.split(' ')[1])
+            const id = req.user.id
             const{comandId} = req.body;
             let result = await teamService.newMember(id,comandId)
             return res.json({result})
         } catch (error) {
             console.log(error)
-            return res.status(500).json({ message: 'Error' });
+            return ApiError.internal(error);
         }
     }
 
     // ОТМЕНА ЗАЯВКИ НА ВСТУПЛНЕНИЕ В КОМАНДУ ПОЛЬЗОВАТИЛЕМ
     async declineQueue(req: express.Request, res: express.Response, next: express.NextFunction){
         try {
-            const {id} = jwtService.decodeJWT(req.headers.authorization.split(' ')[1])
-            let queue = await teamService.declineQueue(id)
+            const id = req.user.id
+            let queue = await adminService.declineQueue(id)
             return res.json({message:`Пользователь ${id} удален с очереди`, queue})
         } catch (error) {
             console.log(error)
-            return res.status(500).json({ message: 'Error' });
+            return ApiError.internal(error);
         }
     }
 
     // Переход в другую каманду
     async changeComand(req: express.Request, res: express.Response, next: express.NextFunction){
         try {
-            const {id} = jwtService.decodeJWT(req.headers.authorization.split(' ')[1])
+            const id = req.user.id
             const{comandId} = req.body
-           
             let queue = await teamService.changeComand(id, comandId)
             return res.json(queue)
         } catch (error) {
             console.log(error)
-            return res.status(500).json({ message: 'Error' });
+            return ApiError.internal(error);
         }
     }
 
@@ -51,12 +49,14 @@ class TeamController{
     //ИНФОРМАЦИЯ ПРО ИГРОКОВ В ОДНОЙ КОМАНДЕ
     async teamMembers(req: express.Request, res: express.Response, next: express.NextFunction){
         try {
-            const {id} = jwtService.decodeJWT(req.headers.authorization.split(' ')[1])
-            let team = await teamService.teamMembers(id)
+            //const id = req.user.id
+            const {comandId} = req.query
+            console.log(comandId)
+            let team = await teamService.teamMembers(Number(comandId))
             return res.json({team})
         } catch (error) {
             console.log(error)
-            return res.status(500).json({ message: 'Error' });
+            return ApiError.internal(error);
         }
     }
 
@@ -67,10 +67,22 @@ class TeamController{
             return res.json({teams})
         } catch (error) {
             console.log(error)
-            return res.status(500).json({ message: 'Error' });
+            return ApiError.internal(error);
         }
     }
     // -------- TEAM --------
+
+    async getMember(req: express.Request, res: express.Response, next: express.NextFunction){
+        try {
+            let userId = req.user.id
+            console.log(userId)
+            let teams = await teamService.getMember(userId)
+            return res.json({teams})
+        } catch (error) {
+            console.log(error)
+            return ApiError.internal(error);
+        }
+    }
 }
 
-module.exports = new TeamController()
+export default new TeamController()

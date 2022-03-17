@@ -1,7 +1,7 @@
-const ApiError = require('../error/ApiError')
+import ApiError from '../error/ApiError'
 import * as express from 'express';
 
-module.exports = function(err: ApiError, req:express.Request, res:express.Response, next:express.NextFunction)
+export default function(err: ApiError, req:express.Request, res:express.Response, next:express.NextFunction)
 {
     if(err instanceof ApiError)
     {

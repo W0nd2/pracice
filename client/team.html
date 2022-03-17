@@ -10,7 +10,7 @@
     <title>Team</title>
 </head>
 
-<body onload="teamMembers()">
+<body >
     <!-- HEADER -->
 
     <div class="header">
@@ -33,6 +33,10 @@
     <!-- BODY -->
 
     <div id="body">
+        <div>
+            <input id="comandId" placeholder="comandId">
+            <button onclick="teamMembers()">Получить участников</button>
+        </div>
         <span> Ваша команда состоит из таких членов: </span>
         <div id="team">
             <!-- тут будет список пользователей которые состоят в команде -->

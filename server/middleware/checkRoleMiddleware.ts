@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken')
-const roleService = require('../services/roleService')
 
-module.exports = function (role: any) {
+export default function (role: any) {
     return function (req: any, res: any, next: any) { //мб реквест заменить на ени
         try {
             const token = req.headers.authorization.split(' ')[1]

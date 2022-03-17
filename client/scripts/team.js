@@ -3,12 +3,12 @@ function teamMembers() {
     //токен с локал стореджа
     let token = localStorage.getItem('token')
     console.log(token)
-
-    //ссылка на бек с просмотром профайла пользователя
-    const requestURL = 'http://localhost:5000/api/user/teamMembers'
-
     let element = document.getElementById("team");
+    let comandId = document.getElementById("comandId").value
+    //ссылка на бек с просмотром профайла пользователя
+    const requestURL = `http://localhost:5000/api/user/teamMembers?comandId=${comandId}`
 
+    
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest()
 
@@ -35,14 +35,16 @@ function teamMembers() {
             }
             else {
                 for (let index = 0; index < res.team.length; index++) {
-                    const resultHTML = `
-                <div class="member" >
-                    <span id="member-id">userId: ${res.team[index].userId}</span>
-                </div>
-                `;
-                    const newDiv = document.createElement("div");
-                    newDiv.innerHTML = resultHTML;
-                    element.appendChild(newDiv);
+                    for (let userIndex = 0; userIndex < res.team[index].users.length; userIndex++) {
+                        const resultHTML = `
+                            <div class="member" >
+                                <span id="member-id">userId: ${res.team[index].users[userIndex].email}</span>
+                            </div>
+                        `;
+                        const newDiv = document.createElement("div");
+                        newDiv.innerHTML = resultHTML;
+                        element.appendChild(newDiv);
+                    }
                 }
             }
 

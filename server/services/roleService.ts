@@ -1,12 +1,9 @@
-const uuid = require('uuid');
-const bcrypt = require('bcrypt');
-const path = require('path');
-const ApiError = require('../error/ApiError');
-import Model from "../models/models";
+import ApiError from '../error/ApiError';
+import Role from "../models/roleModel";
 
 class RoleService{
-    async findRole(id:number){
-        const role = await Model.Role.findOne({where: id})
+    async findRole(id:number):Promise<string | ApiError>{
+        const role = await Role.findOne({where: {id}})
         if(!role)
         {
             return ApiError.internal('Такой роли не существует')
@@ -15,4 +12,4 @@ class RoleService{
     }
 }
 
-module.exports = new RoleService()
+export default new RoleService()

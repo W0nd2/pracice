@@ -1,22 +1,21 @@
 const Rout = require('express')
 const adminRoutes = new Rout()
 import {check,body} from 'express-validator'
-const authMiddleware = require('../middleware/authMiddleware')
-const adminController = require('../controllers/adminController')
-const Role = require('../middleware/checkRoleMiddleware')
+import authMiddleware from '../middleware/authMiddleware'
+import adminController from '../controllers/adminController'
+
+import Role from '../middleware/checkRoleMiddleware'
 
 // MANAGER
 
 // MANAGER POST
 
-//вход под аккаунтом манеджера
-adminRoutes.post('/login/manager',[
-    body('email', 'Incorrect email').isString().isEmail(),
-    body('password', 'Incorrect password. Password must have from 5 to 25 characters').isString().isLength({min:5,max:25}),
-    Role(['ADMIN'])
-], adminController.loginManager);              
 
-//adminRoutes.post('/comandAdd', [authMiddleware,Role(['ADMIN'])], userController.comandAdd)
+/* костыль для команд */
+import userController from '../controllers/userController'
+adminRoutes.post('/comandAdd', [authMiddleware,Role(['ADMIN'])], userController.comandAdd)
+
+adminRoutes.get('/membersOncomand', adminController.getmembers)
 // MANAGER GET
 
 
@@ -102,4 +101,4 @@ adminRoutes.delete('/declineToAnotherTeam',[
     authMiddleware,Role(['MANAGER','ADMIN'])
 ], adminController.declineToAnotherTeam)
 
-module.exports = adminRoutes
+export default adminRoutes

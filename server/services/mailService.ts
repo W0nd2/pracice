@@ -16,6 +16,7 @@ class MailService{
 
 
     sendMail(to: string, link: string) {
+        
         this.transporter.sendMail({
             from: process.env.SMTP_USER,
             to,
@@ -32,4 +33,4 @@ class MailService{
     }
 }
 
-module.exports = new MailService();
+export default new MailService();

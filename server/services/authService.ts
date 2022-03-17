@@ -1,16 +1,14 @@
-const uuid = require('uuid');
-const bcrypt = require('bcrypt');
-const path = require('path');
-const ApiError = require('../error/ApiError');
-import Model from "../models/models";
-//const jwt = require('jsonwebtoken')
-const mailService = require('../services/mailService')
-const blockService = require('../services/blockService')
+import * as uuid from 'uuid';
+import * as bcrypt from 'bcrypt';
+import ApiError from '../error/ApiError';
+import AproveList from '../models/aprovelistModel';
+import User from '../models/userModel'
+import Banlist from '../models/banlistModel';
 
 class AuthService {
     // -------- AUTH --------
-    async registration(email: string, password: string, login: string, role: number) {
-        const candidate = await Model.User.findOne({ where: { email } })
+    async registration(email: string, password: string, login: string, role: number):Promise<User | ApiError> {
+        const candidate = await User.findOne({ where: { email } })
         if (candidate) {
             return ApiError.bedRequest('Пользователь с таким email уже существует')
         }
@@ -20,16 +18,17 @@ class AuthService {
         // }
         const hashPassword = await bcrypt.hash(password, 5);
         const link = uuid.v4()
-        const user = await Model.User.create({ email, password: hashPassword, login, roleId: role, activationlink: link })
-        await Model.Banlist.create({ userId: user.id })
+        const user = await User.create({ email, password: hashPassword, login, roleId: role, activationlink: link })
+        await Banlist.create({ userId: user.id })
         if (role == 2) {
-            await Model.AproveList.create({ userId: user.id })
+            await AproveList.create({ userId: user.id })
         }
         return user;
     }
 
-    async login(email: string, password: string) {
-        const user = await Model.User.findOne({ where: { email } })
+    async login(email: string, password: string):Promise<User | ApiError> {
+        const user = await User.findOne({ where: { email } })
+        console.log(password, user.password)
         if (!user) {
             return ApiError.internal('Пользователя с таким email не существует')
         }
@@ -47,17 +46,17 @@ class AuthService {
         return user;
     }
 
-    async googleAuth(email: string, name: string) {
-        let user = await Model.User.findOne({ email });
+    async googleAuth(email: string, name: string):Promise<User | ApiError> {
+        let user = await User.findOne({where: { email }});
         console.log(user)
         if (!user) {
-            user = await Model.User.create({ email, login: name, accountType: 'Google' })
+            user = await User.create({ email, login: name, accountType: 'Google' })
         }
         return user;
     }
 
-    async loginGoogle(email: string) {
-        const user = await Model.User.findOne({ where: { email } })
+    async loginGoogle(email: string):Promise<User | ApiError> {
+        const user = await User.findOne({ where: { email } })
         if (!user) {
             return ApiError.internal('Пользователя с таким email не существует')
         }
@@ -67,4 +66,4 @@ class AuthService {
     // -------- AUTH --------
 }
 
-module.exports = new AuthService()
+export default new AuthService()

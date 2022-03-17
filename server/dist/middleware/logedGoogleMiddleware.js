@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isLogedIn = void 0;
-const isLogedIn = (req, res, next) => {
+function default_1(req, res, next) {
     try {
         if (req.method === 'OPTIONS')
             return next();
@@ -12,6 +11,6 @@ const isLogedIn = (req, res, next) => {
     catch (error) {
         return res.status(401).json({ message: 'Not authorized' });
     }
-};
-exports.isLogedIn = isLogedIn;
+}
+exports.default = default_1;
 //# sourceMappingURL=logedGoogleMiddleware.js.map

@@ -1,17 +1,15 @@
-const uuid = require('uuid');
-const bcrypt = require('bcrypt');
-const path = require('path');
-const ApiError = require('../error/ApiError');
-import Model from "../models/models";
-//const jwt = require('jsonwebtoken')
-const mailService = require('../services/mailService')
-const blockService = require('../services/blockService')
+import User from '../models/userModel';
+import ApiError from '../error/ApiError';
+import Comand from '../models/comandModel';
+import requestComand from '../models/requestcomandModel';
+import UserComand from '../models/usercomandModel';
+import blockService from '../services/blockService';
 
 class TeamService{
-    async newMember(userId:number, comandId: number){
-        let user = await Model.requestComand.findOne({where: {userId}})
-        let userInComand = await Model.UserComand.findOne({where: {userId}})
-        let comand = await Model.Comand.findOne({where: {id:comandId}})
+    async newMember(userId:number, comandId: number):Promise<requestComand | ApiError>{
+        let user = await requestComand.findOne({where: {userId}})
+        let userInComand = await UserComand.findOne({where: {userId}})
+        let comand = await Comand.findOne({where: {id:comandId}})
         let flag = blockService.isBlocked(userId)
         console.log(flag)
         console.log(user)
@@ -30,16 +28,16 @@ class TeamService{
         {
             return ApiError.internal('Данной команды не существует')
         }
-        let queue = await Model.requestComand.create({userId, comandId})
+        let queue = await requestComand.create({userId, comandId})
         return queue;
     }
 
-    async changeComand(userId:number, comandId: number){
+    async changeComand(userId:number, comandId: number):Promise<requestComand | ApiError>{
         //let user = await Model.requestComand.findOne({where: {userId}})
-        let userInComand = await Model.UserComand.findOne({where: {userId}})
-        let comand = await Model.Comand.findOne({where: {id:comandId}})
-        let members = await Model.UserComand.findAndCountAll({where:comandId})
-        if(members == 10)
+        let userInComand = await UserComand.findOne({where: {userId}})
+        let comand = await Comand.findOne({where: {id:comandId}})
+        let members = await UserComand.findAndCountAll({where:{comandId}})
+        if(members.count == 10)
         {
             return ApiError.internal('Команда, в которую вы хотите перейти, полностью укомплектована')
         }
@@ -55,28 +53,38 @@ class TeamService{
         {
             return ApiError.internal('Данной команды не существует')
         }
-        let queue = await Model.requestComand.create({userId, comandId})
+        let queue = await requestComand.create({userId, comandId})
         return queue;
     }
 
-    async teamMembers(userId:number){
-        //переделать
-        let member = await Model.UserComand.findOne({where:{userId}})
-        let comandId = member.comandId
-        let teamMembers =await Model.UserComand.findAll({where:{comandId}})
+    async teamMembers(comandId:number):Promise<Comand[] | ApiError>{//UserComand[]
+        
+        //let member = await UserComand.findOne({where:{userId}})
+        //let comandId = member.comandId
+        let teamMembers =await Comand.findAll({where:{id:comandId}, include:User})
         if(teamMembers.length == 0){
             return ApiError.internal('Команда пустая')
         }
         return teamMembers;
     }
 
-    async allMembers(){
-        let members = await Model.UserComand.findAll()
+    async allMembers():Promise<Comand[] | ApiError>{ //UserComand[]
+        // let members = await UserComand.findAll()//{include: [User]}
+        // if(!members){
+        //     return ApiError.internal('Обе команды пусты')
+        // }
+        // return members;
+        let members = await Comand.findAll({include:User})//{include: [User]}
         if(!members){
             return ApiError.internal('Обе команды пусты')
         }
         return members;
     }
+    //потом удалить
+    async getMember(id:number){
+        let member =await User.findOne({where: {id},include:Comand})
+        return member
+    }
 }
 
-module.exports = new TeamService()
+export default new TeamService()

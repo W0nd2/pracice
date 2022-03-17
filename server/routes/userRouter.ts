@@ -1,9 +1,9 @@
 const Rout = require('express')
 const userRoutes = new Rout()
 import {body, check} from 'express-validator'
-const userController = require('../controllers/userController')
-const teamController = require('../controllers/teamController')
-const authMiddleware = require('../middleware/authMiddleware')
+import userController from '../controllers/userController'
+import teamController from'../controllers/teamController'
+import authMiddleware from'../middleware/authMiddleware'
 
 //возможно не надо делать это
 // userRoutes.get('/checklogin', authMiddleware, userController.checkLogin);
@@ -21,10 +21,10 @@ userRoutes.post('/password/change',[
 ], userController.changePassword);
 
 // изменение пароля
-userRoutes.path('/password/:link',[
-    
+userRoutes.patch('/password',[
+    authMiddleware,
     body('password', 'Incorrect password. Password must have from 5 to 25 characters').isString().isLength({min:5,max:25})
-], userController.forgotPassport);
+], userController.forgotPassword);
 
 //userRoutes.get('/team', authMiddleware, userController.checkTeam);
 
@@ -58,5 +58,6 @@ userRoutes.get('/teamMembers',authMiddleware, teamController.teamMembers);
 // просмотр всех членов команд
 userRoutes.get('/allMembers',authMiddleware, teamController.allMembers);
 
+userRoutes.get('/getMember',authMiddleware, teamController.getMember);
 
-module.exports = userRoutes
+export default userRoutes

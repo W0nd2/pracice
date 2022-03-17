@@ -1,10 +1,10 @@
 const Rout = require('express')
 const authRoutes = new Rout()
 import {body,check} from 'express-validator'
-const userController = require('../controllers/userController')
-const authMiddleware = require('../middleware/authMiddleware')
-const authController = require('../controllers/authController')
-const isLogedIn = require('../middleware/logedGoogleMiddleware')
+import userController from '../controllers/userController'
+import authMiddleware from '../middleware/authMiddleware'
+import authController from '../controllers/authController'
+import isLogedIn from '../middleware/logedGoogleMiddleware'
 import passport from 'passport';
 
 // POST
@@ -46,4 +46,4 @@ authRoutes.get('/google/logout', authController.logoutGoogle);
 // //потом удалить
 authRoutes.post('/roleAdd', userController.roleCreate)
 
-module.exports = authRoutes
+export default authRoutes

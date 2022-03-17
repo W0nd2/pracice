@@ -1,4 +1,4 @@
-module.exports = function (req: any, res: any, next: any)  {
+export default function (req: any, res: any, next: any)  {
     try {
         if(req.method === 'OPTIONS')
             return next();

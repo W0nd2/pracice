@@ -1,61 +1,128 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const bcrypt = require('bcrypt');
-const ApiError = require('../error/ApiError');
-const { User } = require('../models/models');
-const jwt = require('jsonwebtoken');
-const genereteJwt = (id, email, login, role) => {
-    return jwt.sign({ id, email, login, role }, //payload
-    process.env.SECRET_KEY, { expiresIn: '12h' });
-};
+const express_validator_1 = require("express-validator");
+const roleModel_1 = __importDefault(require("../models/roleModel"));
+const comandModel_1 = __importDefault(require("../models/comandModel"));
+const ApiError_1 = __importDefault(require("../error/ApiError"));
+const userService_1 = __importDefault(require("../services/userService"));
+const fileService_1 = __importDefault(require("../services/fileService"));
 class UserController {
-    registration(req, res, next) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const { email, password, login, role } = req.body;
-            if (!email || !password) {
-                return next(ApiError.bedRequest('Некорректный email или password'));
-            }
-            const candidate = yield User.findOne({ where: { email } });
-            if (candidate) {
-                return next(ApiError.bedRequest('Пользователь с таким email уже существует'));
-            }
-            const hashPassword = yield bcrypt.hash(password, 5);
-            const user = yield User.create({ email, password: hashPassword, login, role });
-            const token = genereteJwt(user.id, user.email, user.login, user.role);
-            return res.json(token);
-        });
+    // после того как будет все готово убрать
+    async roleCreate(req, res, next) {
+        try {
+            const { newRole } = req.body;
+            const role = await roleModel_1.default.create({ userRole: newRole });
+            return res.json({ role });
+        }
+        catch (error) {
+            console.log(error);
+            return ApiError_1.default.internal(error);
+        }
     }
-    login(req, res, next) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const { email, password } = req.body;
-            const user = yield User.findOne({ where: { email } });
-            if (!user) {
-                return next(ApiError.internal('Пользователя с таким email не существует'));
-            }
-            let comparePassword = bcrypt.compareSync(password, user.password);
-            if (!comparePassword) {
-                return next(ApiError.internal('Неверный пароль'));
-            }
-            const token = genereteJwt(user.id, user.email, user.login, user.role);
-            return res.json(token);
-        });
+    async comandAdd(req, res, next) {
+        try {
+            const { newComand } = req.body;
+            const comand = await comandModel_1.default.create({ comandName: newComand });
+            return res.json({ comand });
+        }
+        catch (error) {
+            console.log(error);
+            return ApiError_1.default.internal(error);
+        }
     }
-    checkJwt(req, res, next) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const { id, email, login, role } = req.body;
-            const token = genereteJwt(id, email, login, role);
-            return res.json({ token });
-        });
+    //-------------------------------------------------------------------------------------------------------
+    // PROFILE
+    async checkProfile(req, res, next) {
+        try {
+            const id = req.user?.id;
+            if (!id) {
+                return ApiError_1.default.internal('Пользователь не авторизирован');
+            }
+            let user = await userService_1.default.checkProfile(id);
+            return res.json(user);
+            console.log(req.user);
+        }
+        catch (error) {
+            console.log(error);
+            return ApiError_1.default.internal(error);
+        }
+    }
+    // USER LOGIN
+    async changeLogin(req, res, next) {
+        try {
+            const errors = (0, express_validator_1.validationResult)(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ errors });
+            }
+            const id = req.user?.id;
+            if (!id) {
+                return ApiError_1.default.internal('Пользователь не авторизирован');
+            }
+            const { newLogin } = req.body;
+            console.log(id, newLogin);
+            let user = await userService_1.default.changeLogin(id, newLogin);
+            return res.json(user);
+        }
+        catch (error) {
+            console.log(error);
+            return ApiError_1.default.internal(error);
+        }
+    }
+    // AVATAR
+    async changeAvatar(req, res, next) {
+        try {
+            const id = req.user?.id;
+            if (!id) {
+                return ApiError_1.default.internal('Пользователь не авторизирован');
+            }
+            const { avatar } = req.files;
+            console.log('------------------------------------------------------');
+            console.log(typeof (avatar));
+            //let fileName = uuid.v4() + ".jpg";
+            //avatar.mv(path.resolve(__dirname, '..', 'static', fileName))
+            let fileName = fileService_1.default.uploadFile(avatar);
+            let user = await userService_1.default.changeAvatar(id, fileName);
+            return res.json(user);
+        }
+        catch (error) {
+            console.log(error);
+            return ApiError_1.default.internal(error);
+        }
+    }
+    // PASSWORD
+    async changePassword(req, res, next) {
+        try {
+            const errors = (0, express_validator_1.validationResult)(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ errors });
+            }
+            const { email } = req.body;
+            console.log(email);
+            await userService_1.default.changePassword(email);
+            return res.json({ message: 'Письмо отправлено на почту' });
+        }
+        catch (error) {
+            console.log(error);
+            return ApiError_1.default.internal(error);
+        }
+    }
+    async forgotPassword(req, res, next) {
+        try {
+            const id = req.user?.id;
+            if (!id) {
+                return ApiError_1.default.internal('Пользователь не авторизирован');
+            }
+            const { password } = req.body;
+            return (userService_1.default.forgotPassword(id, password));
+        }
+        catch (error) {
+            console.log(error);
+            return ApiError_1.default.internal(error);
+        }
     }
 }
-module.exports = new UserController();
+exports.default = new UserController();
 //# sourceMappingURL=userController.js.map

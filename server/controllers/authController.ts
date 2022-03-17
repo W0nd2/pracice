@@ -1,11 +1,10 @@
 import * as express from 'express';
 import { validationResult } from 'express-validator';
-const ApiError = require('../error/ApiError');
-//const jwt = require('jsonwebtoken')
-const userService = require('../services/userService')
-const authService = require('../services/authService')
-const jwtService = require('../services/jwtService')
-const roleService = require('../services/roleService')
+import ApiError from '../error/ApiError';
+import authService from '../services/authService';
+import jwtService from '../services/jwtService';
+import roleService from '../services/roleService';
+import User from '../models/userModel';
 
 class AuthController{
     async registration(req: express.Request, res: express.Response, next: express.NextFunction) {
@@ -25,7 +24,7 @@ class AuthController{
             return res.json(user);
         } catch (error) {
             console.log(error)
-            return res.status(500).json({ message: 'Error' });
+            return ApiError.internal(error);
         }
 
     }
@@ -45,13 +44,14 @@ class AuthController{
             {
                 return res.json(user)
             }
+            user = user as User
             let role = await roleService.findRole(user.roleId)
-            
-            let token = jwtService.genereteJwt(user.id, user.email, user.login, role)
+            // проверить
+            let token = jwtService.genereteJwt(user.id, user.email, user.login, String(role))
             return res.json({token});
         } catch (error) {
             console.log(error)
-            return res.status(500).json({ message: 'Error' });
+            return ApiError.internal(error);
         }
 
     }
@@ -63,39 +63,50 @@ class AuthController{
             return res.json({ token })
         } catch (error) {
             console.log(error)
-            return res.status(500).json({ message: 'Error' });
+            return ApiError.internal(error);
         }
 
     }
 
     //     Start  -------    Google auth     -------  Start
-    async successGoogleAuth(req: any, res: any, next: any) {
+    async successGoogleAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
         try {
-            console.log(req.user);
+            
             const { email, name } = req.user;
+            console.log('--------------------------------')
+            console.log(name)
             let user = await authService.googleAuth(email, name.givenName)
-            const token = jwtService.genereteJwt(user.id, user.email, user.login, user.role)
+            // проверить
+            if(user instanceof ApiError){
+                return res.json(user)
+            }
+            let role = await roleService.findRole(user.roleId)
+            const token = jwtService.genereteJwt(user.id, user.email, user.login, String(role))
             return res.json({ token })
         } catch (error) {
             console.log(error);
-            return res.status(500).json({ message: 'Error google auth' });
+            return ApiError.internal('Error google auth');
         }
     }
 
     async failureGoogleAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
-        return res.status(500).json({ message: "Failure login" })
+        return ApiError.internal("Failure login")
     }
 
     async loginGoogle(req: express.Request, res: express.Response, next: express.NextFunction) {
         try {
             const { email } = req.body;
             let user = await authService.loginGoogle(email);
+            if( user instanceof ApiError){
+                return res.json({user})
+            }
             let role = await roleService.findRole(user.roleId)
-            const token = jwtService.genereteJwt(user.id, user.email, user.login, role)
+            // проверить
+            const token = jwtService.genereteJwt(user.id, user.email, user.login, String(role))
             return res.json({token});
         } catch (error) {
             console.log(error)
-            return res.status(500).json({ message: 'Error' });
+            return ApiError.internal(error);
         }
     }
 
@@ -107,4 +118,4 @@ class AuthController{
     //     END  -------    Google auth     -------  END
 }
 
-module.exports = new AuthController()
+export default new AuthController()
