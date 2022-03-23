@@ -74,7 +74,42 @@ function managerRegistration(){
             localStorage.clear()
             localStorage.setItem('token', xhr.response.token)
             console.log(xhr.response)
-            window.location.pathname = '/client/login.html'
+
+            //сокеты
+            const roomName = 'Manager registration'
+            const userRole = 'MANAGER'
+            //const roomId = 1
+            const message = "Новый менеджер ожидает подтверждения регистрации"
+            // "/socket.io/socket.io.js"
+            //"https://cdn.socket.io/socket.io-1.4.5.js"
+            const socketUrl = "http://localhost:8000"
+            const socket = io(socketUrl)
+            socket.on("connect", () => {
+                //console.log(socket.connected); // true              
+                //console.log(socket.id); // x8WIv7-mJelg7on_ALbx
+                //создание комнаты
+                socket.emit("CREATE_OR_JOIN_ROOM", ({roomName, userRole } /* возможно передавать с локал сторедж роль пользователя*/));
+            });
+        
+            //все комнаты
+            // socket.on("ROOMS", (value)=>{
+            //     console.log(value);
+            // })
+            
+            //вывод сообщения о том что пользователь присоеденился к группе
+            socket.on("JOINED_ROOM", (value)=>{
+                console.log(value)
+            })
+        
+            //отправка сообщения на сервер
+            socket.emit("SEND_ROOM_MESSAGE",{roomName, message})
+        
+            //не работает получение сообщения
+            socket.on("ROOM_MESSAGE",(message)=>{
+                
+                console.log(message)
+            })
+            //window.location.pathname = '/client/login.html'
         }
 
         xhr.onerror = () => {

@@ -48,7 +48,7 @@ class AuthController{
             let role = await roleService.findRole(user.roleId)
             // проверить
             let token = jwtService.genereteJwt(user.id, user.email, user.login, String(role))
-            return res.json({token});
+            return res.json({token, role});
         } catch (error) {
             console.log(error)
             return ApiError.internal(error);

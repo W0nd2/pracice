@@ -27,6 +27,7 @@ function loginUser(){
             if (xhr.response.token != undefined) {
                 localStorage.clear()
                 localStorage.setItem('token', xhr.response.token)
+                localStorage.setItem('role', xhr.response.role)
                 console.log(xhr.response)
                 window.location.pathname = '/client/index.html'
             }
@@ -41,8 +42,7 @@ function loginUser(){
 
 //запрос на смену пароля
 function resetPass(){
-    //dedmoroz1472002@gmail.com
-    
+
     let reqEmail = document.getElementById('login-email').value
 
     //ссылка на бек с регистрацией

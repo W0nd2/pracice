@@ -10,6 +10,7 @@ import passport from 'passport';
 import './pasportStrategy';
 import connect from 'connect-session-sequelize';
 import session from 'express-session';
+import './socket/appSocket';
 const SequelizeStore = connect(session.Store);
 
 const SESSION_SECRET =  'secret';

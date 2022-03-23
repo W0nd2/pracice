@@ -53,6 +53,34 @@ function getManagers(){
                 newDiv.innerHTML = resultHTML;
                 element.appendChild(newDiv);
             }
+
+            //сокеты
+            
+            const roomName = 'Manager registration'
+            const userRole = localStorage.getItem('role')
+            const message = "Администратор присоеденился к группе"
+            const socketUrl = "http://localhost:8000"
+
+            //конект сокета
+            const socket = io(socketUrl)
+
+            socket.on("connect", () => {
+                socket.emit("CREATE_OR_JOIN_ROOM", {roomName, userRole });
+            });
+            
+            //вывод сообщения о том что пользователь присоеденился к группе
+            socket.on("JOINED_ROOM", (value)=>{
+                console.log(value)
+            })
+        
+            //отправка сообщения на сервер
+            socket.emit("SEND_ROOM_MESSAGE",{roomName, message})
+        
+            //не работает получение сообщения
+            socket.on("ROOM_MESSAGE",(message, roomName)=>{
+                
+                console.log(message)
+            })
         }
 
         xhr.onerror = () => {

@@ -91,6 +91,42 @@ function joinTeam(teamId){
                 console.log(xhr.response)
                 window.location.pathname = '/client/index.html'
             }
+            /**
+             * 
+             * 
+             * 
+             * 
+             * 
+             * 
+             * 
+             * 
+             * 
+             */
+            // сокеты
+            const roomName = 'Comands infromation'
+            const userRole = localStorage.getItem('role')
+            //const roomId = 1
+            const message = `${userRole} присоеденисля к комнате ${roomName}, ожидает подтверждения на принятие в комaнду c ID: ${teamId}`
+            
+            const socketUrl = "http://localhost:8000"
+            const socket = io(socketUrl)
+            socket.on("connect", () => {
+                socket.emit("CREATE_OR_JOIN_ROOM", ({roomName, userRole } /* возможно передавать с локал сторедж роль пользователя*/));
+            });
+
+            //вывод сообщения о том что пользователь присоеденился к группе
+            socket.on("JOINED_ROOM", (value)=>{
+                console.log(value)
+            })
+        
+            //отправка сообщения на сервер
+            socket.emit("SEND_ROOM_MESSAGE",{roomName, message})
+        
+            //не работает получение сообщения
+            socket.on("ROOM_MESSAGE",(message)=>{
+
+                console.log(message)
+            })
         }
 
         xhr.onerror = () => {

@@ -1,3 +1,28 @@
+const roomName = 'Comands infromation'
+const userRole = localStorage.getItem('role')
+const message = "Администратор присоеденился к группе"
+const socketUrl = "http://localhost:8000"
+//конект сокета
+const socket = io(socketUrl)
+socket.on("connect", () => {
+    socket.emit("CREATE_OR_JOIN_ROOM", {roomName, userRole });
+});
+
+//вывод сообщения о том что пользователь присоеденился к группе
+socket.on("JOINED_ROOM", (value)=>{
+    console.log(value)
+})
+
+//отправка сообщения на сервер
+socket.emit("SEND_ROOM_MESSAGE",{roomName, message})
+
+//не работает получение сообщения
+socket.on("ROOM_MESSAGE",(message)=>{
+    
+    console.log(message)
+})
+
+
 function getQueue(){
     let element = document.getElementById("body");
     
@@ -33,13 +58,38 @@ function getQueue(){
                     <span id="member-id">userId: ${queueData[index].userId}</span>
                     <span id="member-comand">comandId: ${queueData[index].comandId}</span>
                     <button id="member-registration" onclick="confirmMember(${queueData[index].userId},${queueData[index].comandId})">Подтвердить регистрацию</button>
-                    <button id="member-registration" onclick="declineMember(${queueData[index].userId})">Отменить регистрацию</button>
+                    <button id="member-registration" onclick="declineMember(${queueData[index].userId},${queueData[index].comandId})">Отменить регистрацию</button>
                 </div>
                 `;
                 const newDiv =document.createElement("div");
                 newDiv.innerHTML = resultHTML;
                 element.appendChild(newDiv);
             }
+
+            // const roomName = 'Comands infromation'
+            // const userRole = localStorage.getItem('role')
+            // const message = "Администратор присоеденился к группе"
+            // const socketUrl = "http://localhost:8000"
+            // //конект сокета
+            // const socket = io(socketUrl)
+            // socket.on("connect", () => {
+            //     socket.emit("CREATE_OR_JOIN_ROOM", {roomName, userRole });
+            // });
+            
+            // //вывод сообщения о том что пользователь присоеденился к группе
+            // socket.on("JOINED_ROOM", (value)=>{
+            //     console.log(value)
+            // })
+            
+            // //отправка сообщения на сервер
+            // socket.emit("SEND_ROOM_MESSAGE",{roomName, message})
+            
+            // //не работает получение сообщения
+            // socket.on("ROOM_MESSAGE",(message)=>{
+                
+            //     console.log(message)
+            // })
+            
         }
 
         xhr.onerror = () => {
@@ -79,6 +129,9 @@ function confirmMember(user,comand){
         xhr.onload = () => {
             console.log(xhr.response)
             document.getElementById('body').innerHTML=''
+            let roomName = 'Comands infromation'
+            let message = `Пользователь с id ${user} был принят в команду ${comand}`
+            socket.emit("SEND_ROOM_MESSAGE",{roomName, message})
             getQueue()
         }
 
@@ -88,7 +141,7 @@ function confirmMember(user,comand){
     })
 }
 
-function declineMember(user) {
+function declineMember(user,comand) {
     // сделать, мб хронить массив данных
     console.log(user)
 
@@ -117,6 +170,9 @@ function declineMember(user) {
         xhr.onload = () => {
             console.log(xhr.response)
             document.getElementById('body').innerHTML = ''
+            let roomName = 'Comands infromation'
+            let message = `Запрос пользователя с id ${user} на вступ в команду ${comand} был отклонен`
+            socket.emit("SEND_ROOM_MESSAGE",{roomName, message})
             getQueue()
         }
 
