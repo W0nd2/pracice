@@ -17,8 +17,8 @@ class AuthService {
         //     return ApiError.bedRequest('Пользователя с такой ролью нельзя добавить в базу данных')
         // }
         const hashPassword = await bcrypt.hash(password, 5);
-        const link = uuid.v4()
-        const user = await User.create({ email, password: hashPassword, login, roleId: role, activationlink: link })
+        //const link = uuid.v4()
+        const user = await User.create({ email, password: hashPassword, login, roleId: role})
         await Banlist.create({ userId: user.id })
         if (role == 2) {
             await AproveList.create({ userId: user.id })

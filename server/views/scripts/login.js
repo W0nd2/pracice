@@ -29,7 +29,7 @@ function loginUser(){
                 localStorage.setItem('token', xhr.response.token)
                 localStorage.setItem('role', xhr.response.role)
                 console.log(xhr.response)
-                window.location.pathname = '/client/index.html'
+                window.location.pathname = 'api/render/index'
             }
         }
 

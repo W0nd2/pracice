@@ -23,7 +23,7 @@ class AdminService {
             return ApiError.internal('Пользователь уже являеться MANAGER')
         }
         user.managerActive = true;
-        let aprove:any = await AproveList.findOne({ where: { userId: id } });
+        let aprove = await AproveList.findOne({ where: { userId: id } });
         aprove.reason = reason;
         aprove.save()
         user.save()

@@ -36,12 +36,18 @@ app.use(cors())
 app.use(express.json())
 app.use(passport.initialize());
 app.use(passport.session());
+app.set('view engine', 'ejs');
+app.use(express.static(path.resolve(__dirname, 'views')))
 app.use(express.static(path.resolve(__dirname, 'static')))//для рендера картинок 
 app.use(fileUpload({}))
 app.use('/api', router)
-
 //последний в цепочке Middleware, отвечает за ошибки
 app.use(errorHandler)
+
+// import Rout, {Request,Response} from 'express'
+// app.get('/index', (req:Request,res:Response)=>{
+//     res.render('index')
+// })
 
 const start = async () => {
     try {

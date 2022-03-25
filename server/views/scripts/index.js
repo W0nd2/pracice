@@ -1,6 +1,6 @@
 function allMembers() {
     if (!localStorage.token) {
-        window.location.pathname = '/client/login.html'
+        window.location.pathname = 'api/render/login'
     }
     //токен с локал стореджа
     let token = localStorage.getItem('token')
