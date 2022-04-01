@@ -11,10 +11,9 @@ class AdminService {
     // -------- ADMIN --------
 
     async confirmManager(id: number, reason: string):Promise<User | ApiError> {
-        console.log(id,reason)
         let user = await User.findOne({ where: { id } })
         if (!user) {
-            return ApiError.internal('Пользователя с таким email не существует')
+            return ApiError.internal('Пользователя с таким id не существует')
         }
         if (user.roleId != 2) {
             return ApiError.internal('Пользователь не являеться MANAGER')

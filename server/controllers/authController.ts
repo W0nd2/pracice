@@ -32,17 +32,17 @@ class AuthController{
     async login(req: express.Request, res: express.Response, next: express.NextFunction) {
         try {
             const { email, password } = req.body;
-            console.log(req.body)
+            //console.log(req.body)
             const errors = validationResult(req)
             if(!errors.isEmpty())
             {
                 return res.status(400).json({errors});
             }
             let user = await authService.login(email, password)
-            console.log(user)
+            //console.log(user)
             if(user instanceof ApiError)
             {
-                return res.json(user)
+                return res.status(400).json(user)
             }
             user = user as User
             let role = await roleService.findRole(user.roleId)

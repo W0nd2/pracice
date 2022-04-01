@@ -13,7 +13,11 @@ class TeamController{
             const id = req.user.id
             const{comandId} = req.body;
             let result = await teamService.newMember(id,comandId)
-            return res.json({result})
+            if(result instanceof ApiError)
+            {
+                return res.status(400).json(result)
+            }
+            return res.json(result)
         } catch (error) {
             console.log(error)
             return ApiError.internal(error);
@@ -51,8 +55,11 @@ class TeamController{
         try {
             //const id = req.user.id
             const {comandId} = req.query
-            console.log(comandId)
             let team = await teamService.teamMembers(Number(comandId))
+            if(team instanceof ApiError)
+            {
+                return res.status(400).json(team)
+            }
             return res.json({team})
         } catch (error) {
             console.log(error)
@@ -75,7 +82,6 @@ class TeamController{
     async getMember(req: express.Request, res: express.Response, next: express.NextFunction){
         try {
             let userId = req.user.id
-            console.log(userId)
             let teams = await teamService.getMember(userId)
             return res.json({teams})
         } catch (error) {

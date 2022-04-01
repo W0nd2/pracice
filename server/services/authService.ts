@@ -28,7 +28,7 @@ class AuthService {
 
     async login(email: string, password: string):Promise<User | ApiError> {
         const user = await User.findOne({ where: { email } })
-        console.log(password, user.password)
+        //console.log(password, user.password)
         if (!user) {
             return ApiError.internal('Пользователя с таким email не существует')
         }

@@ -52,7 +52,7 @@ adminRoutes.patch('/blockUser', [
 //разблокировка пользователя
 adminRoutes.patch('/unblockUser', [
     authMiddleware,Role(['ADMIN'])
-], adminController.unblockUser);                
+], adminController.blockUser);                
 
 //подтверждение регистрации менеджера
 adminRoutes.patch('/confirmManager',[
@@ -76,7 +76,7 @@ adminRoutes.get('/userById', [
 
 // TEAM
 
-//получить очередь запросов
+//  получить очередь запросов
 adminRoutes.get('/queue',[
     authMiddleware,Role(['MANAGER','ADMIN'])
 ], adminController.getqueue);

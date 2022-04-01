@@ -41,8 +41,8 @@ class UserService {
 
     // PASSWORD
     async forgotPassword(id: number, newPassword: string):Promise<User | ApiError>{
-        console.log(newPassword)
-        const user = await User.findOne({ where: { id }})
+        //console.log(newPassword)
+        let user = await User.findOne({ where: { id }})
         if (!user) {
             return ApiError.internal('Пользователя с таким ID не существует')
         }

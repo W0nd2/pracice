@@ -10,9 +10,9 @@ class TeamService{
         let user = await requestComand.findOne({where: {userId}})
         let userInComand = await UserComand.findOne({where: {userId}})
         let comand = await Comand.findOne({where: {id:comandId}})
-        let flag = blockService.isBlocked(userId)
-        console.log(flag)
-        console.log(user)
+        let flag = await blockService.isBlocked(userId)
+        //console.log(flag)
+        //console.log(user)
         if(user)
         {
             return ApiError.internal('Пользователь с таки ID уже состоит в очереди')
@@ -75,9 +75,9 @@ class TeamService{
         // }
         // return members;
         let members = await Comand.findAll({include:User})//{include: [User]}
-        if(!members){
-            return ApiError.internal('Обе команды пусты')
-        }
+        // if(!members){
+        //     return ApiError.internal('Обе команды пусты')
+        // }
         return members;
     }
     //потом удалить

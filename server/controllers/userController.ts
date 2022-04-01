@@ -77,7 +77,6 @@ class UserController {
                 return ApiError.internal('Пользователь не авторизирован');
             }
             const { newLogin } = req.body;
-            console.log(id, newLogin)
             let user = await userService.changeLogin(id, newLogin)
             return res.json(user)
         } catch (error) {
@@ -131,13 +130,20 @@ class UserController {
 
     async forgotPassword(req: express.Request, res: express.Response, next: express.NextFunction){//не работает
         try {
+            const errors = validationResult(req)
+            if(!errors.isEmpty())
+            {
+                return res.status(400).json({errors});
+            }
             const id = req.user?.id
             if(!id)
             {
                 return ApiError.internal('Пользователь не авторизирован');
             }
             const {password} = req.body
-            return(userService.forgotPassword(id,password))
+            let user = await userService.forgotPassword(id,password)
+            //console.log(user)
+            return res.json(user)
         } catch (error) {
             console.log(error)
             return ApiError.internal(error);

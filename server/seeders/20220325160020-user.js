@@ -7,9 +7,14 @@ module.exports = {
       {userRole:"USER",createdAt:new Date(Date.now()),updatedAt:new Date(Date.now()) },
       {userRole:"MANAGER",createdAt:new Date(Date.now()),updatedAt:new Date(Date.now()) },
       {userRole:"ADMIN",createdAt:new Date(Date.now()),updatedAt:new Date(Date.now()) },
-  ]);
+    ]);
     await queryInterface.bulkInsert('users', [
       { email: 'admin@gmail.com', password: await bcrypt.hash('123456789', 5),login:'Admin',roleId:3,createdAt:new Date(Date.now()),updatedAt:new Date(Date.now())},
+      //{ email: 'user@gmail.com', password: await bcrypt.hash('123456789', 5),login:'User',roleId:1,createdAt:new Date(Date.now()),updatedAt:new Date(Date.now())},
+    ]);
+    await queryInterface.bulkInsert('comands', [
+      { comandName:"111",createdAt:new Date(Date.now()),updatedAt:new Date(Date.now())},
+      { comandName:"222",createdAt:new Date(Date.now()),updatedAt:new Date(Date.now())},
     ]);
   },
 

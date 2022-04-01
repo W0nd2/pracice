@@ -49,6 +49,8 @@ app.use(errorHandler)
 //     res.render('index')
 // })
 
+export default app;
+
 const start = async () => {
     try {
         await db.authenticate()

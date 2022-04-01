@@ -34,7 +34,7 @@ userRoutes.patch('/password',[
 
 // изменение логина
 userRoutes.patch('/login/change',[
-    body('newLogin','Incorrect login').isString().isLength({min:2,max:25})
+    body('newLogin','Incorrect login').isString().isLength({min:3,max:25})
 ], authMiddleware, userController.changeLogin);
 
 // изменение аватара

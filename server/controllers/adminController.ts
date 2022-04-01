@@ -20,6 +20,10 @@ class AdminController{
         try {
             const{id,reason} = req.body //или ID
             let user = await adminService.confirmManager(id,reason)
+            if(user instanceof ApiError)
+            {
+                return res.status(500).json(user);
+            }
             return res.json(user)
         } catch (error) {
             console.log(error)
@@ -31,6 +35,10 @@ class AdminController{
         try {
             const{id,reason} = req.body //или ID
             let user = await adminService.declineManager(id,reason)
+            if(user instanceof ApiError)
+            {
+                return res.status(500).json(user);
+            }
             return res.json(user)
         } catch (error) {
             console.log(error)
@@ -41,8 +49,12 @@ class AdminController{
     async getManagerById(req: express.Request, res: express.Response, next: express.NextFunction){
         try {
             const{id} = req.query
-            console.log(id)
+            //console.log(id)
             let manager = await adminService.getManagerById(Number(id))
+            if(manager instanceof ApiError)
+            {
+                return res.status(400).json(manager)
+            }
             return res.json(manager)
         } catch (error) {
             console.log(error)
@@ -67,20 +79,11 @@ class AdminController{
         try {
             const{id,reason,blockFlag} = req.body
             let block = await blockService.blockUser(Number(id),reason,blockFlag)
+            if(block instanceof ApiError)
+            {
+                return res.status(500).json(block)
+            }
             //let block = await blockService.blockUser(Number(id),reason)
-            return res.json(block)
-        } catch (error) {
-            console.log(error)
-            return ApiError.internal(error);
-        }
-    }
-
-    // поменять немного запрос
-    async unblockUser(req: express.Request, res: express.Response, next: express.NextFunction){
-        try {
-            const{id,reason,blockFlag} = req.body
-            let block = await blockService.blockUser(Number(id),reason,blockFlag)
-            //let block = await blockService.unBlockUser(Number(id))
             return res.json(block)
         } catch (error) {
             console.log(error)
@@ -94,8 +97,8 @@ class AdminController{
     
     async getUserById(req: express.Request, res: express.Response, next: express.NextFunction) {
         try {
-            const { id } = req.body;
-            let user = await adminService.getUserById(id)
+            const { id } = req.query;
+            let user = await adminService.getUserById(Number(id))
             return res.json(user)
         } catch (error) {
             console.log(error)
