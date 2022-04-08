@@ -15,11 +15,6 @@ before( async () => {
     token = res.body.token;
 })
 
-async function postReq(url:string,userToken:string, body:any){
-    const res = await chai.request(app).post(url).send(body).set("authorization", `Bearer ${userToken}`)
-    return res;
-}
-
 describe('USERROUT', () => {
 
     it('Should return profile', async () => {
