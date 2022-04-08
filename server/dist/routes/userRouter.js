@@ -22,13 +22,14 @@ userRoutes.post('/password/change', [
 ], userController_1.default.changePassword);
 // изменение пароля
 userRoutes.patch('/password', [
+    authMiddleware_1.default,
     (0, express_validator_1.body)('password', 'Incorrect password. Password must have from 5 to 25 characters').isString().isLength({ min: 5, max: 25 })
 ], userController_1.default.forgotPassword);
 //userRoutes.get('/team', authMiddleware, userController.checkTeam);
 // PATCH
 // изменение логина
 userRoutes.patch('/login/change', [
-    (0, express_validator_1.body)('newLogin', 'Incorrect login').isString().isLength({ min: 2, max: 25 })
+    (0, express_validator_1.body)('newLogin', 'Incorrect login').isString().isLength({ min: 3, max: 25 })
 ], authMiddleware_1.default, userController_1.default.changeLogin);
 // изменение аватара
 userRoutes.patch('/avatar/change', authMiddleware_1.default, userController_1.default.changeAvatar);
@@ -43,5 +44,6 @@ userRoutes.delete('/declineQueue', authMiddleware_1.default, teamController_1.de
 userRoutes.get('/teamMembers', authMiddleware_1.default, teamController_1.default.teamMembers);
 // просмотр всех членов команд
 userRoutes.get('/allMembers', authMiddleware_1.default, teamController_1.default.allMembers);
+userRoutes.get('/getMember', authMiddleware_1.default, teamController_1.default.getMember);
 exports.default = userRoutes;
 //# sourceMappingURL=userRouter.js.map

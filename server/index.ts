@@ -44,11 +44,6 @@ app.use('/api', router)
 //последний в цепочке Middleware, отвечает за ошибки
 app.use(errorHandler)
 
-// import Rout, {Request,Response} from 'express'
-// app.get('/index', (req:Request,res:Response)=>{
-//     res.render('index')
-// })
-
 export default app;
 
 const start = async () => {

@@ -1,306 +1,167 @@
 import chai from "chai";
 import chaiHttp from 'chai-http';
-import app from '../index'
-import * as uuid from 'uuid'
+import app from '../index';
 import bcrypt from 'bcrypt';
-
+import request from './request';
 chai.should();
 
 chai.use(chaiHttp);
-
-let token:string;
+let token: string;
 //let adminToken:string;
 
-describe('USERROUT', ()=>{
+before( async () => {
+    //let res = await postReq('/api/auth/login',``, {email: 'user@gmail.com',password: "123456789"});
+    let res =await request.makeRequest('post','/api/auth/login',``, {email: 'user@gmail.com',password: "123456789"});
+    token = res.body.token;
+})
 
-    before((done)=>{
-        let userEmail = 'user@gmail.com';
-        let adminEmail = 'admin@gmail.com';
-        let userPassword = "123456789";
-        
-        const userBody ={
-            email: userEmail,
-            password: userPassword
+async function postReq(url:string,userToken:string, body:any){
+    const res = await chai.request(app).post(url).send(body).set("authorization", `Bearer ${userToken}`)
+    return res;
+}
+
+describe('USERROUT', () => {
+
+    it('Should return profile', async () => {
+        let res =await request.makeRequest('get','/api/user/profile',`${token}`,{});
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('id');
+        res.body.should.have.property('login');
+        res.body.should.have.property('email');
+    })
+
+    it('Should NOT return profile with incorrect token', async () => {
+        let res = await request.makeRequest('get','/api/user/profile',`${token}test`,{});
+        res.should.have.status(401); 
+    })
+
+    it('Should return profile with new login', async () => {
+        let body = {
+            newLogin: 'newLogin'
         }
-
-        chai.request(app)
-            .post('/api/auth/login')
-            .send(userBody)
-            .end((err, res)=>{
-                token = res.body.token;
-            done();
-        })
+        let res = await request.makeRequest('patch','/api/user/login/change',`${token}`,body);
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('id');
+        res.body.should.have.property('login').equal(body.newLogin);
+        res.body.should.have.property('email');
     })
 
-    describe('Profile', ()=>{
-
-        it('Should return profile', (done) => {
-            chai.request(app)
-                .get('/api/user/profile')
-                .set("authorization", `Bearer ${token}`)
-                .end((err, res)=>{
-                    res.should.have.status(200);
-                    res.body.should.be.a('object');
-                    res.body.should.have.property('id');
-                    res.body.should.have.property('login');
-                    res.body.should.have.property('email');
-                done();
-            })
-        })
-
-        it('Should NOT return profile with incorrect token', (done) => {
-            chai.request(app)
-                .get('/api/user/profile')
-                .set("authorization", `Bearer ${token}test`)
-                .end((err, res)=>{
-                    res.should.have.status(401);
-                done();
-            })
-        })
+    it('Should NOT return profile with new login without correct token', async () => {
+        let body = {
+            newLogin: 'newLogin'
+        }
+        let res = await request.makeRequest('patch','/api/user/login/change',`${token}test`,body);
+        res.should.have.status(401);
     })
 
-
-    describe('Change login', ()=>{
-
-        it('Should return profile with new login', (done) => {
-            let newUserLogin = 'newLogin';
-            let body = {
-                newLogin: newUserLogin
-            }
-            chai.request(app)
-                .patch('/api/user/login/change')
-                .set("authorization", `Bearer ${token}`)
-                .send(body)
-                .end((err, res)=>{
-                    res.should.have.status(200);
-                    res.body.should.be.a('object');
-                    res.body.should.have.property('id');
-                    res.body.should.have.property('login').equal(`${newUserLogin}`);
-                    res.body.should.have.property('email');
-                done();
-            })
-        })
-
-        it('Should NOT return profile with new login without correct token', (done) => {
-            let newUserLogin = 'newLogin';
-            let body = {
-                newLogin: newUserLogin
-            } 
-            chai.request(app)
-                .patch('/api/user/login/change')
-                .set("authorization", `Bearer ${token}test`)
-                .send(body)
-                .end((err, res)=>{
-                    res.should.have.status(401);
-                done();
-            })
-        })
-
-        it('Should NOT return profile with new login without correct login', (done) => {
-            let newUserLogin = 'ts';
-            let body = {
-                newLogin: newUserLogin
-            } 
-            chai.request(app)
-                .patch('/api/user/login/change')
-                .set("authorization", `Bearer ${token}`)
-                .send(body)
-                .end((err, res)=>{
-                    res.should.have.status(400);
-                done();
-            })
-        })
+    it('Should NOT return profile with new login without correct login', async () => {
+        let body = {
+            newLogin: 'ts'
+        }
+        let res = await request.makeRequest('patch','/api/user/login/change',`${token}`,body);
+        res.should.have.status(400);
     })
 
-    describe('Change password', ()=>{
+    it('Should change password', async () => {
+        let body = {
+            password: '123456789'
+        }
+        let res = await request.makeRequest('patch','/api/user/password',`${token}`,body);
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('id');
+        res.body.should.have.property('email');
+        let pasCompare = bcrypt.compareSync(body.password, res.body.password)
+        pasCompare.should.be.equal(true);
+    })
 
-        it('Should change password', (done) => {
-            let newPassword = '123456789';
-            let body = {
-                password: newPassword
-            }
-            chai.request(app)
-                .patch('/api/user/password')
-                .set("authorization", `Bearer ${token}`)
-                .send(body)
-                .end((err, res)=>{
-                    res.should.have.status(200);
-                    res.body.should.be.a('object');
-                    res.body.should.have.property('id');
-                    res.body.should.have.property('email');
-                    let pasCompare = bcrypt.compareSync(newPassword,res.body.password)
-                    pasCompare.should.be.equal(true); 
-                done();
-            })
-        })
+    it('Should NOT change password with incorrect password', async () => {
+        let body = {
+            password: '12'
+        }
+        let res = await request.makeRequest('patch','/api/user/password',`${token}`,body);
+        res.should.have.status(400);
+    })
 
-        it('Should NOT change password with incorrect password', (done) => {
-            let newPassword = '12';
-            let body = {
-                password: newPassword
-            }
-            chai.request(app)
-                .patch('/api/user/password')
-                .set("authorization", `Bearer ${token}`)
-                .send(body)
-                .end((err, res)=>{
-                    res.should.have.status(400);
-                done();
-            })
-        })
+    it('Should NOT change password with incorrect token', async () => {
+        let body = {
+            password: '123456789'
+        }
+        let res = await request.makeRequest('patch','/api/user/login/change',`${token}test`,body);
+        res.should.have.status(401);
+    })
 
-        it('Should NOT change password with incorrect token', (done) => {
-            let newPassword = '12345678';
-            let body = {
-                password: newPassword
-            }
-            chai.request(app)
-                .patch('/api/user/password')
-                .set("authorization", `Bearer ${token}test`)
-                .send(body)
-                .end((err, res)=>{
-                    res.should.have.status(401);
-                done();
-            })
-        })
+    it('New member should NOT sent team req with incorrect token', async () => {
+        let body = {
+            comandId: 1
+        }
+        let res = await request.makeRequest('post','/api/user/newTeamMember',`${token}token`,body);
+        res.should.have.status(401);
+    })
 
+    it('New member should NOT sent team req with incorrect team id', async () => {
+        let body = {
+            comandId: 3
+        }
+        let res = await request.makeRequest('post','/api/user/newTeamMember',`${token}`,body);
+        res.should.have.status(400);
+    })
+
+    it('New member should sent team req', async () => {
+        let body = {
+            comandId: 1
+        }
+        let res = await request.makeRequest('post','/api/user/newTeamMember',`${token}`,body);
+        res.should.have.status(200);
+        res.body.should.be.a('object')
+        res.body.should.have.property('userId');
+        res.body.should.have.property('comandId').equal(body.comandId);
+    })
+
+    it('Should Not decline team req with incorrect token', async () => {
+        let res = await request.makeRequest('delete','/api/user/declineQueue',`${token}test`,{});
+        res.should.have.status(401);
+    })
+
+    it('Should decline team req', async () => {
+        let res = await request.makeRequest('delete','/api/user/declineQueue',`${token}`,{});
+        res.should.have.status(200);
+        res.body.should.be.a('object')
+        res.body.should.have.property('queue').equal('Пользователь удален с очереди');
+    })
+
+    it('Should return team members', async () => {
+        let comandId = '1';
+        let res = await request.makeRequest('get',`/api/user/teamMembers?comandId=${comandId}`,`${token}`,{});
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('team');
+    })
+
+    it('Should NOT return team members with incorrect token', async () => {
+        let comandId = '1';
+        let res = await request.makeRequest('get',`/api/user/teamMembers?comandId=${comandId}`,`${token}test`,{});
+        res.should.have.status(401);
+    })
+
+    it('Should NOT return team members with incorrect team id', async () => {
+        let comandId = '3';
+        let res = await request.makeRequest('get',`/api/user/teamMembers?comandId=${comandId}`,`${token}`,{});
+        res.should.have.status(400);
+    })
+
+    it('Should return all members from 2 teames', async () => {
+        let res = await request.makeRequest('get','/api/user/allMembers',`${token}`,{});
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('teams').be.a('array');
+    })
+
+    it('Should NOT return all members from 2 teames with incorrect token', async () => {
+        let res = await request.makeRequest('get','/api/user/allMembers',`${token}test`,{});
+        res.should.have.status(401);
     })
     
-    describe('New team member', ()=>{
-
-        it('New member should NOT sent team req with incorrect token', (done)=>{
-            let body = {
-                comandId: 1
-            }
-            chai.request(app)
-                .post('/api/user/newTeamMember')
-                .set("authorization", `Bearer ${token}test`)
-                .send(body)
-                .end((err, res)=>{
-                    res.should.have.status(401);
-                done();
-            })
-        })
-
-        it('New member should NOT sent team req with incorrect team id', (done)=>{
-            let body = {
-                comandId: 3
-            }
-            chai.request(app)
-                .post('/api/user/newTeamMember')
-                .set("authorization", `Bearer ${token}`)
-                .send(body)
-                .end((err, res)=>{
-                    //console.log(res);
-                    res.should.have.status(400);
-                done();
-            })
-        })
-
-        it('New member should sent team req',(done)=>{
-            let body = {
-                comandId: 1
-            }
-            chai.request(app)
-                .post('/api/user/newTeamMember')
-                .set("authorization", `Bearer ${token}`)
-                .send(body)
-                .end((err, res)=>{
-                    //console.log(res);
-                    res.should.have.status(200);
-                    res.body.should.be.a('object')
-                    res.body.should.have.property('userId');
-                    res.body.should.have.property('comandId').equal(body.comandId);
-                done();
-            })
-        })
-    })
-
-    describe('Decline team req', ()=>{
-
-        it('Should Not decline team req with incorrect token', (done)=>{
-            chai.request(app)
-                .delete('/api/user/declineQueue')
-                .set("authorization", `Bearer ${token}test`)
-                .end((err, res)=>{
-                    res.should.have.status(401);
-                done();
-            })
-        })
-
-        it('Should decline team req', (done)=>{
-            chai.request(app)
-                .delete('/api/user/declineQueue')
-                .set("authorization", `Bearer ${token}`)
-                .end((err, res)=>{
-                    //console.log(res)
-                    res.should.have.status(200);
-                    res.body.should.be.a('object')
-                    res.body.should.have.property('queue').equal('Пользователь удален с очереди');
-                done();
-            })
-        })
-    })
-
-    describe('Team members',()=>{
-        it('Should return team members',(done)=>{
-            let comandId = '1';
-            chai.request(app)
-                .get(`/api/user/teamMembers?comandId=${comandId}`)
-                .set("authorization", `Bearer ${token}`)
-                .end((err,res)=>{
-                    res.should.have.status(200);
-                    res.body.should.be.a('object');
-                    res.body.should.have.property('team');
-                done();
-            })
-        })
-
-        it('Should NOT return team members with incorrect token',(done)=>{
-            let comandId = '1';
-            chai.request(app)
-                .get(`/api/user/teamMembers?comandId=${comandId}`)
-                .set("authorization", `Bearer ${token}test`)
-                .end((err,res)=>{
-                    res.should.have.status(401);
-                done();
-            })
-        })
-
-        it('Should NOT return team members with incorrect team id',(done)=>{
-            let comandId = '3';
-            chai.request(app)
-                .get(`/api/user/teamMembers?comandId=${comandId}`)
-                .set("authorization", `Bearer ${token}`)
-                .end((err,res)=>{
-                    res.should.have.status(400);
-                done();
-            })
-        })
-    })
-
-    describe('All members from 2 teames', ()=>{
-
-        it('Should return all members from 2 teames',(done)=>{
-            chai.request(app)
-                .get('/api/user/allMembers')
-                .set("authorization", `Bearer ${token}`)
-                .end((err,res)=>{
-                    res.should.have.status(200);
-                    res.body.should.be.a('object');
-                    res.body.should.have.property('teams').be.a('array');
-                done();
-            })
-        })
-
-        it('Should NOT return all members from 2 teames with incorrect token',(done)=>{
-            chai.request(app)
-                .get('/api/user/allMembers')
-                .set("authorization", `Bearer ${token}test`)
-                .end((err,res)=>{
-                    res.should.have.status(401);
-                done();
-            })
-        })
-    })
 })

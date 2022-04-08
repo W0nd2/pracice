@@ -1,7 +1,8 @@
 import chai from "chai";
 import chaiHttp from 'chai-http';
 import app from '../index';
-
+import User from './userdto';
+import request from './request';
 chai.should();
 
 chai.use(chaiHttp);
@@ -10,154 +11,80 @@ let userToken: string;
 let adminToken: string;
 
 let blockBody = {
-    id: 2,
+    id: '',
     reason: 'Spam',
     blockFlag: true
 }
 
 let unBlockUser = {
-    id: 2,
+    id: '',
     reason: '',
     blockFlag: false
 }
 
+before('get user token', async () => {
+    let userRes = await request.makeRequest('post','/api/auth/login','',{email: "user@gmail.com",password: '123456789',login: 'test'});
+    userToken = userRes.body.token;
+    let adminRes = await request.makeRequest('post','/api/auth/login','',{email: 'admin@gmail.com',password: "123456789"});
+    adminToken = adminRes.body.token;
+})
+
 describe('Block service', () => {
+    
 
-    before('get user token', (done) => {
-
-        const userBody = {
-            email: 'user@gmail.com',
-            password: "123456789"
-        }
-
-        chai.request(app)
-            .post('/api/auth/login')
-            .send(userBody)
-            .end((err, res) => {
-                userToken = res.body.token;
-            done();
-        })
+    it('Should NOT block user without admin token', async () => {
+        let res = await request.makeRequest('patch',`/api/admin/blockUser`,`${userToken}`,blockBody);
+        res.should.have.status(403);
     })
 
-    before('get admin token', (done) => {
-
-        const adminBody = {
-            email: 'admin@gmail.com',
-            password: "123456789"
-        }
-
-        chai.request(app)
-            .post('/api/auth/login')
-            .send(adminBody)
-            .end((err, res) => {
-                adminToken = res.body.token;
-            done();
-        })
+    it('Should NOT block user with incorrect admin token', async () => {
+        let res = await request.makeRequest('patch',`/api/admin/blockUser`,`${adminToken}test`,blockBody);
+        res.should.have.status(401);
     })
 
-    describe('Block user', () => {
-        
-        it('Should NOT block user without admin token', (done) => {
-            chai.request(app)
-                .patch(`/api/admin/blockUser`)
-                .set("authorization", `Bearer ${userToken}`)
-                .send(blockBody)
-                .end((err, res) => {
-                    res.should.have.status(403);
-                done();
-            })
-        })
-
-        it('Should NOT block user with incorrect admin token', (done) => {
-            chai.request(app)
-                .patch(`/api/admin/blockUser`)
-                .set("authorization", `Bearer ${adminToken}test`)
-                .send(blockBody)
-                .end((err, res) => {
-                    res.should.have.status(401);
-                done();
-            })
-        })
-
-        it('Should block user', (done) => {
-            chai.request(app)
-                .patch(`/api/admin/blockUser`)
-                .set("authorization", `Bearer ${adminToken}`)
-                .send(blockBody)
-                .end((err, res) => {
-                    res.should.have.status(200);
-                    res.body.should.be.a('object');
-                    res.body.should.have.property('userId').equal(blockBody.id);
-                    res.body.should.have.property('reason').equal(blockBody.reason);
-                    res.body.should.have.property('isBlocked').equal(blockBody.blockFlag);
-                done();
-            })
-        })
-
-        it('Should NOT block user with block status', (done) => {
-            chai.request(app)
-                .patch(`/api/admin/blockUser`)
-                .set("authorization", `Bearer ${adminToken}`)
-                .send(blockBody)
-                .end((err, res) => {
-                    res.should.have.status(500);
-                    res.body.should.be.a('object');
-                    res.body.should.have.property('message').equal('Пользователь уже находиться в блокировке или разблокирован');
-                done();
-            })
-        })
+    it('Should block user', async () => {
+        blockBody.id = User.userId;
+        let res = await request.makeRequest('patch',`/api/admin/blockUser`,`${adminToken}`,blockBody);
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('userId').equal(blockBody.id);
+        res.body.should.have.property('reason').equal(blockBody.reason);
+        res.body.should.have.property('isBlocked').equal(blockBody.blockFlag);
     })
 
-    describe('Unblock user', () => {
-
-        it('Should NOT unblock user without admin token', (done) => {
-            chai.request(app)
-                .patch(`/api/admin/unblockUser`)
-                .set("authorization", `Bearer ${userToken}`)
-                .send(unBlockUser)
-                .end((err, res) => {
-                    res.should.have.status(403);
-                done();
-            })
-        })
-
-        it('Should NOT unblock user with incorrect admin token', (done) => {
-            chai.request(app)
-                .patch(`/api/admin/unblockUser`)
-                .set("authorization", `Bearer ${adminToken}test`)
-                .send(unBlockUser)
-                .end((err, res) => {
-                    res.should.have.status(401);
-                done();
-            })
-        })
-
-        it('Should unblock user', (done) => {
-            chai.request(app)
-                .patch(`/api/admin/unblockUser`)
-                .set("authorization", `Bearer ${adminToken}`)
-                .send(unBlockUser)
-                .end((err, res) => {
-                    res.should.have.status(200);
-                    res.body.should.be.a('object');
-                    res.body.should.have.property('userId').equal(unBlockUser.id);
-                    res.body.should.have.property('reason').equal(unBlockUser.reason);
-                    res.body.should.have.property('isBlocked').equal(unBlockUser.blockFlag);
-                done();
-            })
-        })
-
-        it('Should NOT unblock user without block status', (done) => {
-            chai.request(app)
-                .patch(`/api/admin/unblockUser`)
-                .set("authorization", `Bearer ${adminToken}`)
-                .send(unBlockUser)
-                .end((err, res) => {
-                    res.should.have.status(500);
-                    res.body.should.be.a('object');
-                    res.body.should.have.property('message').equal('Пользователь уже находиться в блокировке или разблокирован');
-                done();
-            })
-        })
+    it('Should NOT block user with block status', async () => {
+        let res = await request.makeRequest('patch',`/api/admin/blockUser`,`${adminToken}`,blockBody);
+        res.should.have.status(500);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').equal('Пользователь уже находиться в блокировке или разблокирован');
     })
+
+    it('Should NOT unblock user without admin token', async () => {
+        //let res = await patchReq(`/api/admin/unblockUser`,`${userToken}`,unBlockUser);
+        let res = await request.makeRequest('patch',`/api/admin/unblockUser`,`${userToken}`,unBlockUser);
+        res.should.have.status(403);
+    })
+
+    it('Should NOT unblock user with incorrect admin token', async () => {
+        let res = await request.makeRequest('patch',`/api/admin/unblockUser`,`${adminToken}test`,unBlockUser);
+        res.should.have.status(401);
+    })
+
+    it('Should unblock user', async () => {
+        unBlockUser.id = User.userId;
+        let res = await request.makeRequest('patch',`/api/admin/unblockUser`,`${adminToken}`,unBlockUser);
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('userId').equal(unBlockUser.id);
+        res.body.should.have.property('reason').equal(unBlockUser.reason);
+        res.body.should.have.property('isBlocked').equal(unBlockUser.blockFlag);
+    })
+
+    it('Should NOT unblock user without block status', async () => {
+        let res = await request.makeRequest('patch',`/api/admin/unblockUser`,`${adminToken}`,unBlockUser);
+        res.should.have.status(500);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').equal('Пользователь уже находиться в блокировке или разблокирован');
+    })
+
 })

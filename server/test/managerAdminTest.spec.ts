@@ -1,7 +1,9 @@
 import chai from "chai";
 import chaiHttp from 'chai-http';
 import app from '../index';
-
+import '../socket/appSocket';
+import * as uuid from 'uuid';
+import request from './request';
 chai.should();
 
 chai.use(chaiHttp);
@@ -9,270 +11,136 @@ chai.use(chaiHttp);
 let userToken: string;
 let adminToken: string;
 
-let userId = 2;
+let userId = 1;
 
-let managerRegBody ={
-    id: 3,
+let managerRegBody = {
+    id:String,
     reason: 'Test'
 }
 
+before(async () => {
+    let userRes = await request.makeRequest('post','/api/auth/login',``, {email: 'user@gmail.com',password: "123456789"});
+    userToken = userRes.body.token;
+    let adminRes = await request.makeRequest('post','/api/auth/login',``, {email: 'admin@gmail.com',password: "123456789"});
+    adminToken = adminRes.body.token;
+    let managerEmail = `${uuid.v4()}manager@gmail.com`;
+    let res = await request.makeRequest('post','/api/auth/registration','', {email: managerEmail,password: '123456789',login: 'test',role: 2});
+    managerRegBody.id = res.body.id;
+})
+
 describe('MANAGER + ADMIN ROUT', () => {
 
-    before('get user token', (done) => {
-        let userEmail = 'user@gmail.com';
-        let userPassword = "123456789";
+    it('Should NOT return user by id without admin token', async () => {
+        let res = await request.makeRequest('get',`/api/admin/userById?id=${userId}`,`${userToken}`,{})
+        res.should.have.status(403);
+    })
 
-        const userBody = {
-            email: userEmail,
-            password: userPassword
+    it('Should NOT return user by id without correct admin token', async () => {
+        let res = await request.makeRequest('get',`/api/admin/userById?id=${userId}`,`${adminToken}test`,{})
+        res.should.have.status(401);
+    })
+
+    it('Should return user by id', async () => {
+        let res = await request.makeRequest('get',`/api/admin/userById?id=${userId}`,`${adminToken}`,{})
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('id').equal(userId);
+        res.body.should.have.property('email');
+        res.body.should.have.property('login');
+    })
+
+    it('Should NOT return manager by id without admin token', async () => {
+        let managerId = 1;
+        let res = await request.makeRequest('get',`/api/admin/managerByID?id=${managerId}`,`${userToken}`,{})
+        res.should.have.status(403);
+    })
+
+    it('Should NOT return manager by id without correct admin token', async () => {
+        let managerId = 1;
+        let res = await request.makeRequest('get',`/api/admin/managerByID?id=${managerId}`,`${adminToken}test`,{})
+        res.should.have.status(401);
+    })
+
+    it('Should return message that there is no manager by such Id', async () => {
+        let managerId = 1;
+        let res = await request.makeRequest('get',`/api/admin/managerByID?id=${managerId}`,`${adminToken}`,{})
+        res.should.have.status(400);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').equal('Пользователь не являеться MANAGER');
+    })
+
+    it('Should return manager by Id', async () => {
+        let managerId = managerRegBody.id;
+        let res = await request.makeRequest('get',`/api/admin/managerByID?id=${managerId}`,`${adminToken}`,{})
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('id').equal(managerId);
+        res.body.should.have.property('login').equal('test');
+    })
+
+    it('Should NOT return managers without admin token', async () => {
+        let res = await request.makeRequest('get',`/api/admin/allManagers`,`${userToken}`,{})
+        res.should.have.status(403);
+    })
+
+    it('Should NOT return managers without correct admin token', async () => {
+        let res = await request.makeRequest('get',`/api/admin/allManagers`,`${adminToken}test`,{})
+        res.should.have.status(401);
+    })
+
+    it('Should return all managers', async () => {
+        let res = await request.makeRequest('get',`/api/admin/allManagers`,`${adminToken}`,{})
+        res.should.have.status(200);
+        res.body.should.be.a('array');
+    })
+
+    it('Should NOT confirm manager with user token', async () => {
+        let res = await request.makeRequest('patch',`/api/admin/confirmManager`,`${userToken}`, managerRegBody)
+        res.should.have.status(403);
+    })
+
+    it('Should NOT confirm manager with incorrect admin token', async () => {
+        let res = await request.makeRequest('patch',`/api/admin/confirmManager`,`${adminToken}test`, managerRegBody)
+        res.should.have.status(401);
+    })
+
+    it('Should NOT confirm user with incorrect role', async () => {
+
+        let wrongManager = {
+            id: 1,
+            reason: 'TEST'
         }
-
-        chai.request(app)
-            .post('/api/auth/login')
-            .send(userBody)
-            .end((err, res) => {
-                userToken = res.body.token;
-                done();
-            })
+        let res = await request.makeRequest('patch',`/api/admin/confirmManager`,`${adminToken}`, wrongManager)
+        res.should.have.status(500);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').equal('Пользователь не являеться MANAGER');
     })
 
-    before('get admin token', (done) => {
+    it('Should NOT confirm manager with incorrect id', async () => {
 
-        let adminEmail = 'admin@gmail.com';
-        let userPassword = "123456789";
-
-        const adminBody = {
-            email: adminEmail,
-            password: userPassword
+        let wrongManager = {
+            id: -1,
+            reason: 'TEST'
         }
-
-        chai.request(app)
-            .post('/api/auth/login')
-            .send(adminBody)
-            .end((err, res) => {
-                adminToken = res.body.token;
-                done();
-            })
-    })
-    /**
-     * queue
-     * declineByManager
-     * confirmMember
-     * confirmToAnotherTeam
-     * declineToAnotherTeam
-     */
-
-    describe('User by Id', () => {
-
-        it('Should NOT return user by id without admin token', (done) => {
-            chai.request(app)
-                .get(`/api/admin/userById?id=${userId}`)
-                .set("authorization", `Bearer ${userToken}`)
-                .end((err, res) => {
-                    res.should.have.status(403);
-                    done();
-                })
-        })
-
-        it('Should NOT return user by id without correct admin token', (done) => {
-            chai.request(app)
-                .get(`/api/admin/userById?id=${userId}`)
-                .set("authorization", `Bearer ${adminToken}test`)
-                .end((err, res) => {
-                    res.should.have.status(401);
-                    done();
-                })
-        })
-
-        it('Should return user by id', (done) => {
-            chai.request(app)
-                .get(`/api/admin/userById?id=${userId}`)
-                .set("authorization", `Bearer ${adminToken}`)
-                .end((err, res) => {
-                    res.should.have.status(200);
-                    res.body.should.be.a('object');
-                    res.body.should.have.property('id').equal(userId);
-                    res.body.should.have.property('email');
-                    res.body.should.have.property('login');
-                    done();
-                })
-        })
+        let res = await request.makeRequest('patch',`/api/admin/confirmManager`,`${adminToken}`, wrongManager);
+        res.should.have.status(500);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').equal('Пользователя с таким id не существует');
     })
 
-    describe('Manager by id', () => {
-
-        it('Should NOT return manager by id without admin token', (done) => {
-            let managerId = '1';
-            chai.request(app)
-                .get(`/api/admin/managerByID?id=${managerId}`)
-                .set("authorization", `Bearer ${userToken}`)
-                .end((err, res) => {
-                    res.should.have.status(403);
-                    done();
-                })
-        })
-
-        it('Should NOT return manager by id without correct admin token', (done) => {
-            let managerId = '1';
-            chai.request(app)
-                .get(`/api/admin/managerByID?id=${managerId}`)
-                .set("authorization", `Bearer ${adminToken}test`)
-                .end((err, res) => {
-                    res.should.have.status(401);
-                    done();
-                })
-        })
-
-        it('Should return message that there is no manager by such Id', (done) => {
-            let managerId = '1';
-            chai.request(app)
-                .get(`/api/admin/managerByID?id=${managerId}`)
-                .set("authorization", `Bearer ${adminToken}`)
-                .end((err, res) => {
-                    res.should.have.status(400);
-                    res.body.should.be.a('object');
-                    res.body.should.have.property('message').equal('Пользователь не являеться MANAGER');
-                    done();
-                })
-        })
-
-        //сделать возврат менеджеров
-
-        it('Should return manager by Id', (done)=>{
-            let managerId = 3;
-            chai.request(app)
-                .get(`/api/admin/managerByID?id=${managerId}`)
-                .set("authorization", `Bearer ${adminToken}`)
-                .end((err, res) => {
-                    res.should.have.status(200);
-                    res.body.should.be.a('object');
-                    res.body.should.have.property('id').equal(managerId);
-                    res.body.should.have.property('login').equal('manager');
-                    done();
-                })
-        })
+    it('Should confirm manager', async () => {
+        let res = await request.makeRequest('patch',`/api/admin/confirmManager`,`${adminToken}`, managerRegBody);
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('id').equal(managerRegBody.id);
+        res.body.should.have.property('managerActive').equal(true);
     })
 
-    describe('Get all managers', () => {
-        it('Should NOT return managers without admin token', (done) => {
-            chai.request(app)
-                .get(`/api/admin/allManagers`)
-                .set("authorization", `Bearer ${userToken}`)
-                .end((err, res) => {
-                    res.should.have.status(403);
-                    done();
-                })
-        })
-
-        it('Should NOT return managers without correct admin token', (done) => {
-            chai.request(app)
-                .get(`/api/admin/allManagers`)
-                .set("authorization", `Bearer ${adminToken}test`)
-                .end((err, res) => {
-                    res.should.have.status(401);
-                    done();
-                })
-        })
-
-        it('Should return all managers', (done) => {
-            chai.request(app)
-                .get(`/api/admin/allManagers`)
-                .set("authorization", `Bearer ${adminToken}`)
-                .end((err, res) => {
-                    res.should.have.status(200);
-                    res.body.should.be.a('array');
-                    done();
-                })
-        })
+    it('Should NOT confirm manager with active manager account', async () => {
+        let res = await request.makeRequest('patch',`/api/admin/confirmManager`,`${adminToken}`, managerRegBody);
+        res.should.have.status(500);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').equal('Пользователь уже являеться MANAGER');
     })
 
-    describe('Confirm manager registration', ()=>{
-
-        it('Should NOT confirm manager with user token', (done)=>{
-            chai.request(app)
-                .patch(`/api/admin/confirmManager`)
-                .set("authorization", `Bearer ${userToken}`)
-                .send(managerRegBody)
-                .end((err, res) => {
-                    res.should.have.status(403);
-                    done();
-                })
-        })
-
-        it('Should NOT confirm manager with incorrect admin token', (done)=>{
-            chai.request(app)
-                .patch(`/api/admin/confirmManager`)
-                .set("authorization", `Bearer ${adminToken}test`)
-                .send(managerRegBody)
-                .end((err, res) => {
-                    res.should.have.status(401);
-                    done();
-                })
-        })
-
-        it('Should NOT confirm user with incorrect role', (done)=>{
-
-            let wrongManager ={
-                id:2,
-                reason:'TEST'
-            }
-
-            chai.request(app)
-                .patch(`/api/admin/confirmManager`)
-                .set("authorization", `Bearer ${adminToken}`)
-                .send(wrongManager)
-                .end((err, res) => {
-                    res.should.have.status(500);
-                    res.body.should.be.a('object');
-                    res.body.should.have.property('message').equal('Пользователь не являеться MANAGER');
-                    done();
-                })
-        })
-
-        it('Should NOT confirm manager with incorrect id', (done)=>{
-
-            let wrongManager ={
-                id:-1,
-                reason:'TEST'
-            }
-
-            chai.request(app)
-                .patch(`/api/admin/confirmManager`)
-                .set("authorization", `Bearer ${adminToken}`)
-                .send(wrongManager)
-                .end((err, res) => {
-                    res.should.have.status(500);
-                    res.body.should.be.a('object');
-                    res.body.should.have.property('message').equal('Пользователя с таким id не существует');
-                    done();
-                })
-        })
-
-        it('Should confirm manager', (done)=>{
-            chai.request(app)
-                .patch(`/api/admin/confirmManager`)
-                .set("authorization", `Bearer ${adminToken}`)
-                .send(managerRegBody)
-                .end((err, res) => {
-                    res.should.have.status(200);
-                    res.body.should.be.a('object');
-                    res.body.should.have.property('id').equal(managerRegBody.id);
-                    res.body.should.have.property('managerActive').equal(true);
-                    done();
-                })
-        })
-
-        it('Should NOT confirm manager with active manager account', (done)=>{
-            chai.request(app)
-                .patch(`/api/admin/confirmManager`)
-                .set("authorization", `Bearer ${adminToken}`)
-                .send(managerRegBody)
-                .end((err, res) => {
-                    res.should.have.status(500);
-                    res.body.should.be.a('object');
-                    res.body.should.have.property('message').equal('Пользователь уже являеться MANAGER');
-                    done();
-                })
-        })
-    })
 })

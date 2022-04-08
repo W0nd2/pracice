@@ -11,7 +11,8 @@
     "seed:down": "sequelize db:seed:undo:all",
     "migration:up": "sequelize db:migrate",
     "migration:down": "sequelize db:migrate:undo:all",
-    "test": "mocha"
+    "resetdb": "npx ts-node ./test/resetdb.ts",
+    "test": "mocha --exit && npm run resetdb"
   },
   "keywords": [],
   "author": "",

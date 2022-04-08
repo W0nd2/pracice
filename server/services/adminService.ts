@@ -136,9 +136,9 @@ class AdminService {
         let userInReq = await requestComand.findOne({where: {userId}})
         let comand = await Comand.findOne({where: {id:comandId}})
         let members = await UserComand.findAndCountAll({where:{comandId}})
-        console.log('------------')
-        console.log(typeof(members))
-        console.log(members)
+        // console.log('------------')
+        // console.log(typeof(members))
+        // console.log(members)
         if( await UserComand.findOne({where:{userId}})){
             await requestComand.destroy({where:{userId}})
             return ApiError.internal('Пользователь уже состоит в команде')
@@ -179,12 +179,12 @@ class AdminService {
         return message;
     }
 
-    async allQueue():Promise<requestComand[] | ApiError>{
+    async allQueue():Promise<requestComand[] >{//| ApiError
         let queue = await requestComand.findAll()
-        if(!queue)
-        {
-            return ApiError.internal('Очередь пуста')
-        }
+        // if(!queue)
+        // {
+            // return ApiError.internal('Очередь пуста')
+        // }
         return queue;
     }
 

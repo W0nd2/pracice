@@ -138,8 +138,11 @@ class AdminController{
     async confirmMember(req: express.Request, res: express.Response, next: express.NextFunction){
         try {
             const{userId, comandId} = req.body;
-            let newTeamMember = await adminService.confirmMember(userId, comandId)
-            return res.json(newTeamMember)
+            let newTeamMember = await adminService.confirmMember(userId, comandId);
+            if(newTeamMember instanceof ApiError){
+                return res.status(500).json(newTeamMember);
+            }
+            return res.json(newTeamMember);
         } catch (error) {
             console.log(error)
             return ApiError.internal(error);
@@ -151,8 +154,12 @@ class AdminController{
         try {
             const{userId} = req.body;
             
-            let queue = await adminService.declineQueue(userId)
-            return res.json({message:`Пользователь ${userId} удален с очереди менеджером`, queue})
+            let queue = await adminService.declineQueue(userId);
+            if(queue instanceof ApiError)
+            {
+                return res.status(500).json(queue);
+            }
+            return res.json({message:`Пользователь ${userId} удален с очереди менеджером`, queue});
         } catch (error) {
             console.log(error)
             return ApiError.internal(error);

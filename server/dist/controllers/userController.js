@@ -9,6 +9,15 @@ const comandModel_1 = __importDefault(require("../models/comandModel"));
 const ApiError_1 = __importDefault(require("../error/ApiError"));
 const userService_1 = __importDefault(require("../services/userService"));
 const fileService_1 = __importDefault(require("../services/fileService"));
+// declare global {
+//     namespace Express {
+//         export interface User {
+//             id: number;
+//             email: string;
+//             login: string;
+//         }
+//     }
+// }
 class UserController {
     // после того как будет все готово убрать
     async roleCreate(req, res, next) {
@@ -37,13 +46,12 @@ class UserController {
     // PROFILE
     async checkProfile(req, res, next) {
         try {
-            const id = req.user?.id;
+            const id = req.user.id;
             if (!id) {
                 return ApiError_1.default.internal('Пользователь не авторизирован');
             }
             let user = await userService_1.default.checkProfile(id);
             return res.json(user);
-            console.log(req.user);
         }
         catch (error) {
             console.log(error);
@@ -57,12 +65,11 @@ class UserController {
             if (!errors.isEmpty()) {
                 return res.status(400).json({ errors });
             }
-            const id = req.user?.id;
+            const id = req.user.id;
             if (!id) {
                 return ApiError_1.default.internal('Пользователь не авторизирован');
             }
             const { newLogin } = req.body;
-            console.log(id, newLogin);
             let user = await userService_1.default.changeLogin(id, newLogin);
             return res.json(user);
         }
@@ -74,7 +81,7 @@ class UserController {
     // AVATAR
     async changeAvatar(req, res, next) {
         try {
-            const id = req.user?.id;
+            const id = req.user.id;
             if (!id) {
                 return ApiError_1.default.internal('Пользователь не авторизирован');
             }
@@ -111,12 +118,18 @@ class UserController {
     }
     async forgotPassword(req, res, next) {
         try {
+            const errors = (0, express_validator_1.validationResult)(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ errors });
+            }
             const id = req.user?.id;
             if (!id) {
                 return ApiError_1.default.internal('Пользователь не авторизирован');
             }
             const { password } = req.body;
-            return (userService_1.default.forgotPassword(id, password));
+            let user = await userService_1.default.forgotPassword(id, password);
+            //console.log(user)
+            return res.json(user);
         }
         catch (error) {
             console.log(error);

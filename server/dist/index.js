@@ -15,6 +15,7 @@ const passport_1 = __importDefault(require("passport"));
 require("./pasportStrategy");
 const connect_session_sequelize_1 = __importDefault(require("connect-session-sequelize"));
 const express_session_1 = __importDefault(require("express-session"));
+require("./socket/appSocket");
 const SequelizeStore = (0, connect_session_sequelize_1.default)(express_session_1.default.Store);
 const SESSION_SECRET = 'secret';
 const PORT = process.env.PORT || 5000;
@@ -36,11 +37,18 @@ app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 app.use(passport_1.default.initialize());
 app.use(passport_1.default.session());
+app.set('view engine', 'ejs');
+app.use(express_1.default.static(path_1.default.resolve(__dirname, 'views')));
 app.use(express_1.default.static(path_1.default.resolve(__dirname, 'static'))); //для рендера картинок 
 app.use((0, express_fileupload_1.default)({}));
 app.use('/api', index_1.default);
 //последний в цепочке Middleware, отвечает за ошибки
 app.use(ErrorHandlingMidleware_1.default);
+// import Rout, {Request,Response} from 'express'
+// app.get('/index', (req:Request,res:Response)=>{
+//     res.render('index')
+// })
+exports.default = app;
 const start = async () => {
     try {
         await database_1.default.authenticate();
