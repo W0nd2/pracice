@@ -11,8 +11,6 @@ class TeamService{
         let userInComand = await UserComand.findOne({where: {userId}})
         let comand = await Comand.findOne({where: {id:comandId}})
         let flag = await blockService.isBlocked(userId)
-        //console.log(flag)
-        //console.log(user)
         if(user)
         {
             return ApiError.internal('Пользователь с таки ID уже состоит в очереди')
@@ -20,20 +18,18 @@ class TeamService{
         if(userInComand){
             return ApiError.internal('Пользователь с таки ID уже в команде')
         }
-        // if(blockService.isBlocked(userId))
-        // {
-        //     return ApiError.internal('Пользователь находиться в блокировке')
-        // }
         if(!comand)
         {
             return ApiError.internal('Данной команды не существует')
+        }
+        if(flag){
+            return ApiError.internal('Пользователь заблокирован')
         }
         let queue = await requestComand.create({userId, comandId})
         return queue;
     }
 
     async changeComand(userId:number, comandId: number):Promise<requestComand | ApiError>{
-        //let user = await Model.requestComand.findOne({where: {userId}})
         let userInComand = await UserComand.findOne({where: {userId}})
         let comand = await Comand.findOne({where: {id:comandId}})
         let members = await UserComand.findAndCountAll({where:{comandId}})
@@ -41,10 +37,6 @@ class TeamService{
         {
             return ApiError.internal('Команда, в которую вы хотите перейти, полностью укомплектована')
         }
-        // if(!user)
-        // {
-        //     return ApiError.internal('Пользователя с таки ID не существует')
-        // }
         if(!userInComand)
         {
             return ApiError.internal('Пользователь с таки ID не состоит в команде, вы не можете подать заяку на переход в другую команду')
@@ -57,33 +49,41 @@ class TeamService{
         return queue;
     }
 
-    async teamMembers(comandId:number):Promise<Comand[] | ApiError>{//UserComand[]
-        
-        //let member = await UserComand.findOne({where:{userId}})
-        //let comandId = member.comandId
-        let teamMembers =await Comand.findAll({where:{id:comandId}, include:User})
+    async teamMembers(comandId:number, userLimit:number, offsetStart:number):Promise<Comand[] | ApiError>{
+        let teamMembers =await Comand.findAll({
+            where:{id:comandId},
+            include:[{model:User,attributes: { exclude: ['password']},through:{ attributes:[]}}],
+            limit: userLimit,
+            offset: offsetStart
+        })
         if(teamMembers.length == 0){
             return ApiError.internal('Команда пустая')
         }
         return teamMembers;
     }
 
-    async allMembers():Promise<Comand[] | ApiError>{ //UserComand[]
-        // let members = await UserComand.findAll()//{include: [User]}
-        // if(!members){
-        //     return ApiError.internal('Обе команды пусты')
-        // }
-        // return members;
-        let members = await Comand.findAll({include:User})//{include: [User]}
-        // if(!members){
-        //     return ApiError.internal('Обе команды пусты')
-        // }
+    async allMembers(userLimit:number, offsetStart:number):Promise<Comand[] | ApiError>{
+        let members = await Comand.findAll({
+            include:[{model:User,attributes: { exclude: ['password']}}],
+            limit: userLimit,
+            offset: offsetStart
+        })
         return members;
     }
-    //потом удалить
+
     async getMember(id:number){
-        let member =await User.findOne({where: {id},include:Comand})
+        let member =await User.findOne({where: {id},include:Comand,attributes: { exclude: ['password'] } })
         return member
+    }
+
+    async declineQueue(userId:number):Promise<string | ApiError>{
+        let user = await requestComand.findOne({where:{userId}})
+        if(!user){
+            return ApiError.internal('Пользователь с таким ID не состоит в очереди')
+        }
+        requestComand.destroy({where:{userId}})
+        let message = 'Пользователь удален с очереди'
+        return message;
     }
 }
 

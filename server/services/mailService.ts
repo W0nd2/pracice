@@ -20,7 +20,7 @@ class MailService{
         this.transporter.sendMail({
             from: process.env.SMTP_USER,
             to,
-            subject: 'Смена пароля на сайте ' + 'http://127.0.0.1:5500/client/password.html',//process.env.API_URL
+            subject: 'Смена пароля на сайте ' + `${process.env.RESET_PASS_URL}`,
             text: '',
             html:
                 `

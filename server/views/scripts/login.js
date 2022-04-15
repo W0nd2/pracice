@@ -20,7 +20,6 @@ function loginUser(){
             email: lgEmail,
             password: lgPassword
         }
-        console.log(body)
         xhr.send(JSON.stringify(body))
 
         xhr.onload = () => {
@@ -28,11 +27,9 @@ function loginUser(){
                 localStorage.clear()
                 localStorage.setItem('token', xhr.response.token)
                 localStorage.setItem('role', xhr.response.role)
-                console.log(xhr.response)
                 window.location.pathname = 'api/render/index'
             }
         }
-
         xhr.onerror = () => {
             reject(xhr.response)
         }
@@ -40,12 +37,8 @@ function loginUser(){
 
 }
 
-//запрос на смену пароля
 function resetPass(){
-
     let reqEmail = document.getElementById('login-email').value
-
-    //ссылка на бек с регистрацией
     const requestURL = 'http://localhost:5000/api/user/password/change'
 
     return new Promise((resolve, reject) => {
@@ -61,12 +54,10 @@ function resetPass(){
             email: reqEmail
         }
 
-        console.log(body)
 
         xhr.send(JSON.stringify(body))
 
         xhr.onload = () => {
-            console.log(xhr.response)
         }
 
         xhr.onerror = () => {

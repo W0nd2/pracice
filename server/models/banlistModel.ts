@@ -24,5 +24,6 @@ Banlist.init({
     reason:{type: DataTypes.STRING}
 },{
     sequelize: db,
-    modelName:'banlists'
+    modelName:'banlists',
+    timestamps:false
 })

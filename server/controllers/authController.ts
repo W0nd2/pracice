@@ -10,12 +10,10 @@ class AuthController{
     async registration(req: express.Request, res: express.Response, next: express.NextFunction) {
         try {
             const { email, password, login, role } = req.body
-            
-            
             const errors = validationResult(req)
             if(!errors.isEmpty())
             {
-                return res.status(400).json({errors});
+                return res.status(400).json(errors);
             }
             if (!email || !password) {
                 return next(ApiError.bedRequest('Некорректный email или password'))
@@ -32,21 +30,18 @@ class AuthController{
     async login(req: express.Request, res: express.Response, next: express.NextFunction) {
         try {
             const { email, password } = req.body;
-            //console.log(req.body)
             const errors = validationResult(req)
             if(!errors.isEmpty())
             {
-                return res.status(400).json({errors});
+                return res.status(400).json(errors);
             }
             let user = await authService.login(email, password)
-            //console.log(user)
             if(user instanceof ApiError)
             {
                 return res.status(400).json(user)
             }
             user = user as User
             let role = await roleService.findRole(user.roleId)
-            // проверить
             let token = jwtService.genereteJwt(user.id, user.email, user.login, String(role))
             return res.json({token, role});
         } catch (error) {
@@ -68,15 +63,11 @@ class AuthController{
 
     }
 
-    //     Start  -------    Google auth     -------  Start
     async successGoogleAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
         try {
             
             const { email, name } = req.user;
-            console.log('--------------------------------')
-            console.log(name)
             let user = await authService.googleAuth(email, name.givenName)
-            // проверить
             if(user instanceof ApiError){
                 return res.json(user)
             }
@@ -101,7 +92,6 @@ class AuthController{
                 return res.json({user})
             }
             let role = await roleService.findRole(user.roleId)
-            // проверить
             const token = jwtService.genereteJwt(user.id, user.email, user.login, String(role))
             return res.json({token});
         } catch (error) {
@@ -114,8 +104,6 @@ class AuthController{
         req.session.destroy(() => { });
         return res.json({ message: 'Logged out Google Account' })
     }
-
-    //     END  -------    Google auth     -------  END
 }
 
 export default new AuthController()

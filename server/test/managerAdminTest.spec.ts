@@ -1,6 +1,5 @@
 import chai from "chai";
 import chaiHttp from 'chai-http';
-import app from '../index';
 import '../socket/appSocket';
 import * as uuid from 'uuid';
 import request from './request';
@@ -18,10 +17,16 @@ let managerRegBody = {
     reason: 'Test'
 }
 
+let loginBody ={
+    email: 'user@gmail.com',
+    password: "123456789"
+}
+
 before(async () => {
-    let userRes = await request.makeRequest('post','/api/auth/login',``, {email: 'user@gmail.com',password: "123456789"});
+    let userRes = await request.makeRequest('post','/api/auth/login',``, loginBody);
     userToken = userRes.body.token;
-    let adminRes = await request.makeRequest('post','/api/auth/login',``, {email: 'admin@gmail.com',password: "123456789"});
+    loginBody.email ='admin@gmail.com';
+    let adminRes = await request.makeRequest('post','/api/auth/login',``, loginBody);
     adminToken = adminRes.body.token;
     let managerEmail = `${uuid.v4()}manager@gmail.com`;
     let res = await request.makeRequest('post','/api/auth/registration','', {email: managerEmail,password: '123456789',login: 'test',role: 2});

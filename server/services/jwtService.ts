@@ -1,5 +1,4 @@
 import webtoken from 'jsonwebtoken'
-
 class WebToken {
     genereteJwt(id: number, email: string, login: string, role: string) {
         return webtoken.sign(
@@ -10,8 +9,8 @@ class WebToken {
     }
 
     decodeJWT(token: string) {
-    const decoded = webtoken.verify(token, process.env.SECRET_KEY)
-    return decoded
+        const decoded = webtoken.verify(token, process.env.SECRET_KEY)
+        return decoded
     }
 }
 

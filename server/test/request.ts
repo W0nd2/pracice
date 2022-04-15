@@ -11,22 +11,22 @@ class Req{
         return res;
     }
 
-    private async postReq(url:string, userToken:string, body:any){
+    private async postReq(url:string, userToken:string, body:object){
         const res = await chai.request(app).post(url).send(body).set("authorization", `Bearer ${userToken}`)
         return res;
     }
 
-    private async patchReq(url:string, userToken:string, body:any){
+    private async patchReq(url:string, userToken:string, body:object){
         const res = await chai.request(app).patch(url).send(body).set("authorization", `Bearer ${userToken}`)
         return res;
     }
 
-    private async deleteReq(url:string,userToken:string,body:any){
+    private async deleteReq(url:string,userToken:string,body:object){
         const res = await chai.request(app).delete(url).send(body).set("authorization", `Bearer ${userToken}`)
         return res;
     }
 
-    public makeRequest(method:string,url:string,userToken:string, body:any){
+    public makeRequest(method:string,url:string,userToken:string, body:object){
         if(method == 'get'){
             const res = this.getReq(url,userToken);
             return res;

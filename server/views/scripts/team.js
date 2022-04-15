@@ -1,28 +1,15 @@
 function teamMembers() {
-    // http://localhost:5000/api/user/teamMembers
-    //токен с локал стореджа
     let token = localStorage.getItem('token')
-    console.log(token)
     let element = document.getElementById("team");
     let comandId = document.getElementById("comandId").value
-    //ссылка на бек с просмотром профайла пользователя
     const requestURL = `http://localhost:5000/api/user/teamMembers?comandId=${comandId}`
-
-    
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest()
-
         xhr.open('GET', requestURL)
-
         xhr.setRequestHeader("Authorization", `Bearer ${token}`);
-
-
-
         xhr.send()
-
         xhr.onload = () => {
             let res = JSON.parse(xhr.response)
-            console.log(res)
             if (res.length == 0) {
                 const resultHTML = `
                 <div class="member" >
@@ -47,9 +34,7 @@ function teamMembers() {
                     }
                 }
             }
-
         }
-
         xhr.onerror = () => {
             reject(xhr.response)
         }

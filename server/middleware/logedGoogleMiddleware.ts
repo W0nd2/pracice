@@ -1,4 +1,6 @@
-export default function (req: any, res: any, next: any)  {
+import {Request, Response, NextFunction} from 'express'
+
+export default function (req: Request, res: Response, next: NextFunction)  {
     try {
         if(req.method === 'OPTIONS')
             return next();

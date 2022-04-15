@@ -1,7 +1,6 @@
 import * as express from 'express';
 import ApiError from'../error/ApiError';
 import teamService from '../services/teamService';
-import adminService from '../services/adminService';
 
 class TeamController{
     // -------- TEAM --------
@@ -28,7 +27,7 @@ class TeamController{
     async declineQueue(req: express.Request, res: express.Response, next: express.NextFunction){
         try {
             const id = req.user.id
-            let queue = await adminService.declineQueue(id)
+            let queue = await teamService.declineQueue(id)
             return res.json({message:`Пользователь ${id} удален с очереди`, queue})
         } catch (error) {
             console.log(error)
@@ -49,13 +48,11 @@ class TeamController{
         }
     }
 
-
     //ИНФОРМАЦИЯ ПРО ИГРОКОВ В ОДНОЙ КОМАНДЕ
     async teamMembers(req: express.Request, res: express.Response, next: express.NextFunction){
         try {
-            //const id = req.user.id
-            const {comandId} = req.query
-            let team = await teamService.teamMembers(Number(comandId))
+            const {comandId,userLimit, offsetStart} = req.query;
+            let team = await teamService.teamMembers(Number(comandId),Number(userLimit), Number(offsetStart))
             if(team instanceof ApiError)
             {
                 return res.status(400).json(team)
@@ -70,14 +67,14 @@ class TeamController{
     // ВСЕ УЧАСНИКИ С ДВУХ КОМАНД
     async allMembers(req: express.Request, res: express.Response, next: express.NextFunction){
         try {
-            let teams = await teamService.allMembers()
-            return res.json({teams})
+            const {userLimit, offsetStart} = req.query;
+            let teams = await teamService.allMembers(Number(userLimit), Number(offsetStart))
+            return res.json(teams)
         } catch (error) {
             console.log(error)
             return ApiError.internal(error);
         }
     }
-    // -------- TEAM --------
 
     async getMember(req: express.Request, res: express.Response, next: express.NextFunction){
         try {

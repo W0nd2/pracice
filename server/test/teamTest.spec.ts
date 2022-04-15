@@ -1,6 +1,5 @@
 import chai from "chai";
 import chaiHttp from 'chai-http';
-import app from '../index';
 import '../socket/appSocket';
 import User from "./userdto";
 import request from './request';
@@ -11,7 +10,7 @@ chai.use(chaiHttp);
 let userToken: string;
 let adminToken: string;
 
-let userBody = {
+const userBody = {
     email: 'user@gmail.com',
     password: "123456789"
 }
@@ -21,6 +20,11 @@ const adminBody = {
     password: "123456789"
 }
 
+let userReq ={
+    userId: 1, 
+    comandId: 1 
+}
+
 before(async () => {
     let res = await request.makeRequest('post','/api/auth/login',``, userBody);
     userToken = res.body.token;
@@ -28,8 +32,6 @@ before(async () => {
     adminToken = adminRes.body.token;
     await request.makeRequest('post','/api/user/newTeamMember',`${adminToken}`, {comandId: 1});
 })
-
-
 
 describe('TEAM test', () => {
     
@@ -77,45 +79,46 @@ describe('TEAM test', () => {
     
     it('Should NOT confirm member registration with user token', async () => {
         await request.makeRequest('post','/api/user/newTeamMember',`${adminToken}`, {comandId: 1});
-        let res = await request.makeRequest('post',`/api/admin/confirmMember`,`${userToken}`, { userId: 1, comandId: 1 });
+        let res = await request.makeRequest('post',`/api/admin/confirmMember`,`${userToken}`, userReq);
         res.should.have.status(403);
     })
 
     it('Should NOT confirm member registration without correct admin or manager token', async () => {
-        let res = await request.makeRequest('post',`/api/admin/confirmMember`,`${adminToken}test`, { userId: 1, comandId: 1 });
+        let res = await request.makeRequest('post',`/api/admin/confirmMember`,`${adminToken}test`, userReq);
         res.should.have.status(401);
     })
 
     it('Should return that there are no such person', async () => {
-        let res = await request.makeRequest('post',`/api/admin/confirmMember`,`${adminToken}`, { userId: -1, comandId: 1 });
+        userReq.userId = -1;
+        let res = await request.makeRequest('post',`/api/admin/confirmMember`,`${adminToken}`, userReq);
         res.should.have.status(500);
         res.body.should.be.a('object');
         res.body.should.have.property('message').equal('Пользователя с таки ID не существует');
     })
 
     it('Should return that no such person on queue', async () => {
-        let res = await request.makeRequest('post',`/api/admin/confirmMember`,`${adminToken}`, { userId: User.userId, comandId: 1 });
+        userReq.userId = Number(User.userId);
+        let res = await request.makeRequest('post',`/api/admin/confirmMember`,`${adminToken}`, userReq);
         res.should.have.status(500);
         res.body.should.be.a('object');
         res.body.should.have.property('message').equal('Пользователь с таки ID не состоит в очереди, возможно его уже добавили в команду');
     })
 
     it('Should return that no such team', async () => {
-        let res = await request.makeRequest('post',`/api/admin/confirmMember`,`${adminToken}`, { userId: 1, comandId: 22 });
+        userReq.userId = 1;
+        userReq.comandId = 22;
+        let res = await request.makeRequest('post',`/api/admin/confirmMember`,`${adminToken}`, userReq);
         res.should.have.status(500);
         res.body.should.be.a('object');
         res.body.should.have.property('message').equal('Данной команды не существует');
     })
 
     it('Should confirm member registration', async () => {
-        let body = {
-            userId: 1,
-            comandId: 1
-        }
-        let res = await request.makeRequest('post',`/api/admin/confirmMember`,`${adminToken}`, body);
+        userReq.comandId = 1
+        let res = await request.makeRequest('post',`/api/admin/confirmMember`,`${adminToken}`, userReq);
         res.should.have.status(200);
         res.body.should.be.a('object');
-        res.body.should.have.property('userId').equal(body.userId);
-        res.body.should.have.property('comandId').equal(body.comandId);
+        res.body.should.have.property('userId').equal(userReq.userId);
+        res.body.should.have.property('comandId').equal(userReq.comandId);
     })
 })

@@ -1,7 +1,8 @@
 const jwt = require('jsonwebtoken')
+import {Request,Response,NextFunction} from 'express'
 
-export default function (role: any) {
-    return function (req: any, res: any, next: any) { //мб реквест заменить на ени
+export default function (role: string[]) {
+    return function (req: Request, res: Response, next: NextFunction) {
         try {
             const token = req.headers.authorization.split(' ')[1]
             
@@ -12,7 +13,6 @@ export default function (role: any) {
             if (!role.includes(decoded.role)) {
                 return res.status(403).json({ message: "У пользователя не достаточно прав" })
             }
-            //req.user = decoded;
             next();
         } catch (e) {
             res.status(401).json({ message: "Пользователь не авторизован" })

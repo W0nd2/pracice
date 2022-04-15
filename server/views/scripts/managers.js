@@ -4,7 +4,6 @@ function getManagers(){
     }
     //токен с локал стореджа
     let token = localStorage.getItem('token')
-    console.log(token)
 
     //ссылка на бек с просмотром профайла пользователя
     const requestURL = 'http://localhost:5000/api/admin/allManagers'
@@ -27,7 +26,6 @@ function getManagers(){
 
         xhr.onload = () => {
             let res = JSON.parse(xhr.response)
-            console.log(res)
             for (let index = 0; index < res.length; index++) {
                 let reresultHTML
                 if (!res[index].managerActive) {
@@ -53,36 +51,22 @@ function getManagers(){
                 newDiv.innerHTML = resultHTML;
                 element.appendChild(newDiv);
             }
-
-            //сокеты
-            
             const roomName = 'Manager registration'
             const userRole = localStorage.getItem('role')
             const message = "Администратор присоеденился к группе"
             const socketUrl = "http://localhost:8000"
-
-            //конект сокета
             const socket = io(socketUrl)
-
             socket.on("connect", () => {
                 socket.emit("CREATE_OR_JOIN_ROOM", {roomName, userRole });
             });
-            
-            //вывод сообщения о том что пользователь присоеденился к группе
             socket.on("JOINED_ROOM", (value)=>{
-                console.log(value)
+                alert(value)
             })
-        
-            //отправка сообщения на сервер
             socket.emit("SEND_ROOM_MESSAGE",{roomName, message})
-        
-            //не работает получение сообщения
             socket.on("ROOM_MESSAGE",(message, roomName)=>{
-                
-                console.log(message)
+                alert(message)
             })
         }
-
         xhr.onerror = () => {
             reject(xhr.response)
         }
@@ -93,42 +77,22 @@ function managerById(){
     if (!localStorage.token) {
         window.location.pathname = '/client/login.html'
     }
-    //токен с локал стореджа
     let token = localStorage.getItem('token')
-    
-
     let userId = document.getElementById('managerId').value;
-
-    console.log(userId)
-
-    //ссылка на бек с просмотром профайла пользователя
     const requestURL = `http://localhost:5000/api/admin/managerByID?id=${userId}`
-
     let element = document.getElementById("managerById");
-
     element.innerHTML='';
-
     return new Promise((resolve, reject) => {
-
         const xhr = new XMLHttpRequest()
-
         const body = {
             id: userId
         }
-
         xhr.open('GET', requestURL)
-
         xhr.setRequestHeader("Authorization", `Bearer ${token}`);
         xhr.setRequestHeader("Content-type", "application/json");
-
-        
-
         xhr.send()
-
         xhr.onload = () => {
             let res = JSON.parse(xhr.response)
-            console.log(res)
-
             let reresultHTML
             if (!res.managerActive) {
                 resultHTML = `
@@ -152,9 +116,7 @@ function managerById(){
             const newDiv = document.createElement("div");
             newDiv.innerHTML = resultHTML;
             element.appendChild(newDiv);
-
         }
-
         xhr.onerror = () => {
             reject(xhr.response)
         }
@@ -163,35 +125,22 @@ function managerById(){
 
 function confirmManager(managerId){
     let reasonApprove = document.getElementById('manager-reason').value
-    console.log(managerId, reasonApprove)
-    
     let token = localStorage.getItem('token')
-
-    //ссылка на бек с логином
     const requestURL = 'http://localhost:5000/api/admin/confirmManager'
-
-    //сделать запись токена в локал сторедж или куки
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest()
-
         xhr.open('PATCH', requestURL)
-
         xhr.responseType = 'json'
-
         xhr.setRequestHeader("Content-type", "application/json");
         xhr.setRequestHeader("Authorization", `Bearer ${token}`);
-
         const body = {
             id: managerId,
             reason: reasonApprove
         }
-        console.log(body)
         xhr.send(JSON.stringify(body))
-
         xhr.onload = () => {
             getManagers()
         }
-
         xhr.onerror = () => {
             reject(xhr.response)
         }

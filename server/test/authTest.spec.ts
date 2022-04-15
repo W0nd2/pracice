@@ -1,6 +1,5 @@
 import chai from "chai";
 import chaiHttp from 'chai-http';
-import app from '../index'
 import * as uuid from 'uuid';
 import User from './userdto';
 import request from './request';
@@ -17,16 +16,12 @@ let regBody = {
 
 let loginBody ={
     email: 'user@gmail.com',
-    password: "123456789"
+    password: "123456789",
+    login: 'test'
 }
 
-// async function postReq(url:string, body:any){
-    // const res = await chai.request(app)[`post`](url).send(body)//.post()
-    // return res;
-// }
-
 before( async () => {
-    await request.makeRequest('post','/api/auth/registration','',{email: "user@gmail.com",password: '123456789',login: 'test'});
+    await request.makeRequest('post','/api/auth/registration','',loginBody);
 })
 
 describe('AUTHROUT', () => {
@@ -82,7 +77,6 @@ describe('AUTHROUT', () => {
         loginBody.password = '1234567890'
         let res = await request.makeRequest('post','/api/auth/login','',loginBody);
         res.should.have.status(400);
-        //проверка на об. с меседж
     })
 
     it('Should NOT login user with incorrect email', async () => {

@@ -5,18 +5,11 @@ import userController from '../controllers/userController'
 import teamController from'../controllers/teamController'
 import authMiddleware from'../middleware/authMiddleware'
 
-//возможно не надо делать это
-// userRoutes.get('/checklogin', authMiddleware, userController.checkLogin);
-// userRoutes.get('/role', authMiddleware, userController.checkRole);
 
-//просмотр профайла своего
 userRoutes.get('/profile', authMiddleware, userController.checkProfile);
 
-//  password
 
-// запрос на отправку письма на почту
 userRoutes.post('/password/change',[
-    //body('email', 'Incorrect email').isString().isEmail()
     body('email', 'Incorrect email').isEmail()
 ], userController.changePassword);
 
@@ -26,7 +19,6 @@ userRoutes.patch('/password',[
     body('password', 'Incorrect password. Password must have from 5 to 25 characters').isString().isLength({min:5,max:25})
 ], userController.forgotPassword);
 
-//userRoutes.get('/team', authMiddleware, userController.checkTeam);
 
 
 

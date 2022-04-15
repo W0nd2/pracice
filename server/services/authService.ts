@@ -1,4 +1,3 @@
-import * as uuid from 'uuid';
 import * as bcrypt from 'bcrypt';
 import ApiError from '../error/ApiError';
 import AproveList from '../models/aprovelistModel';
@@ -12,12 +11,7 @@ class AuthService {
         if (candidate) {
             return ApiError.bedRequest('Пользователь с таким email уже существует')
         }
-        // if(role = 3)
-        // {
-        //     return ApiError.bedRequest('Пользователя с такой ролью нельзя добавить в базу данных')
-        // }
         const hashPassword = await bcrypt.hash(password, 5);
-        //const link = uuid.v4()
         const user = await User.create({ email, password: hashPassword, login, roleId: role})
         await Banlist.create({ userId: user.id })
         if (role == 2) {
@@ -28,7 +22,6 @@ class AuthService {
 
     async login(email: string, password: string):Promise<User | ApiError> {
         const user = await User.findOne({ where: { email } })
-        //console.log(password, user.password)
         if (!user) {
             return ApiError.internal('Пользователя с таким email не существует')
         }
@@ -47,8 +40,7 @@ class AuthService {
     }
 
     async googleAuth(email: string, name: string):Promise<User | ApiError> {
-        let user = await User.findOne({where: { email }});
-        console.log(user)
+        let user = await User.findOne({where: { email },attributes: { exclude: ['password'] } });
         if (!user) {
             user = await User.create({ email, login: name, accountType: 'Google' })
         }
@@ -56,7 +48,7 @@ class AuthService {
     }
 
     async loginGoogle(email: string):Promise<User | ApiError> {
-        const user = await User.findOne({ where: { email } })
+        const user = await User.findOne({ where: { email },attributes: { exclude: ['password'] }  })
         if (!user) {
             return ApiError.internal('Пользователя с таким email не существует')
         }

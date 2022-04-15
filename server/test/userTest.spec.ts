@@ -1,17 +1,19 @@
 import chai from "chai";
 import chaiHttp from 'chai-http';
-import app from '../index';
 import bcrypt from 'bcrypt';
 import request from './request';
 chai.should();
 
 chai.use(chaiHttp);
 let token: string;
-//let adminToken:string;
+
+let loginBody ={
+    email: 'user@gmail.com',
+    password: "123456789"
+}
 
 before( async () => {
-    //let res = await postReq('/api/auth/login',``, {email: 'user@gmail.com',password: "123456789"});
-    let res =await request.makeRequest('post','/api/auth/login',``, {email: 'user@gmail.com',password: "123456789"});
+    let res =await request.makeRequest('post','/api/auth/login',``, loginBody);
     token = res.body.token;
 })
 

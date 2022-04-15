@@ -21,5 +21,6 @@ AproveList.init({
     reason:{type: DataTypes.STRING}
 },{
     sequelize: db,
-    modelName:'aprovelists'
+    modelName:'aprovelists',
+    timestamps:false
 })

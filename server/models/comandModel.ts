@@ -18,5 +18,7 @@ Comand.init({
     comandName:{type: DataTypes.STRING}
 },{
     sequelize: db,
-    modelName:'comands'
+    modelName:'comands',
+    timestamps:false
 })
+

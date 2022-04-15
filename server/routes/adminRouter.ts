@@ -1,104 +1,83 @@
 const Rout = require('express')
 const adminRoutes = new Rout()
-import {check,body} from 'express-validator'
 import authMiddleware from '../middleware/authMiddleware'
 import adminController from '../controllers/adminController'
-
 import Role from '../middleware/checkRoleMiddleware'
 
+enum Access {
+    Manager ='MANAGER',
+    Administrator ='ADMIN'
+}
+
 // MANAGER
-
-// MANAGER POST
-
-
-/* костыль для команд */
-import userController from '../controllers/userController'
-adminRoutes.post('/comandAdd', [authMiddleware,Role(['ADMIN'])], userController.comandAdd)
-
 adminRoutes.get('/membersOncomand', adminController.getmembers)
-// MANAGER GET
-
-
-
-// MANAGER PATCH
-
-
 
 // ADMIN
-
-// ADMIN POST
 
 // ADMIN GET
 
 //полная информация про менеджера по ID
 adminRoutes.get('/managerByID',[
-    authMiddleware,Role(['ADMIN'])
+    authMiddleware,Role([Access.Administrator])
 ], adminController.getManagerById);             
 
 //полная информация про всех менеджеров
 adminRoutes.get('/allManagers',[
-    authMiddleware,Role(['ADMIN'])
+    authMiddleware,Role([Access.Administrator])
 ], adminController.getManagers);                
-
-
 
 // ADMIN PATCH
 
 //блокировка пользователя
 adminRoutes.patch('/blockUser', [
-    authMiddleware,Role(['ADMIN'])
+    authMiddleware,Role([Access.Administrator])
 ], adminController.blockUser);                  
 
 //разблокировка пользователя
 adminRoutes.patch('/unblockUser', [
-    authMiddleware,Role(['ADMIN'])
+    authMiddleware,Role([Access.Administrator])
 ], adminController.blockUser);                
 
 //подтверждение регистрации менеджера
 adminRoutes.patch('/confirmManager',[
-    authMiddleware,Role(['ADMIN'])
+    authMiddleware,Role([Access.Administrator])
 ],adminController.confirmManager);              
 
 //отклоняет регистрацию менеджера
 adminRoutes.patch('/decline',[
-    authMiddleware,Role(['ADMIN'])
+    authMiddleware,Role([Access.Administrator])
 ],adminController.declineManager);              
 
 // MANAGER + ADMIN
 
 //полная информация про пользователя по ID
 adminRoutes.get('/userById', [
-    authMiddleware,Role(['MANAGER','ADMIN'])
+    authMiddleware,Role([Access.Manager,Access.Administrator])
 ] , adminController.getUserById);               
-
-
-
 
 // TEAM
 
 //  получить очередь запросов
 adminRoutes.get('/queue',[
-    authMiddleware,Role(['MANAGER','ADMIN'])
+    authMiddleware,Role([Access.Manager,Access.Administrator])
 ], adminController.getqueue);
 
-//  Удаление из таблицы запросов на вступление в окманду
-adminRoutes.delete('/declineByManager',[
-    authMiddleware,Role(['MANAGER','ADMIN'])
-], adminController.declineByManager);
-
-// подтверждение запроса на вступление в команду
-adminRoutes.post('/confirmMember',[
-    authMiddleware,Role(['MANAGER','ADMIN'])
-], adminController.confirmMember)
+adminRoutes.patch('/memberToTeam',[
+    authMiddleware,Role([Access.Manager,Access.Administrator])
+],adminController.memberToTeam);
 
 // подтверждение на переход пользователя в другую команду
 adminRoutes.post('/confirmToAnotherTeam',[
-    authMiddleware,Role(['MANAGER','ADMIN'])
+    authMiddleware,Role([Access.Manager,Access.Administrator])
 ], adminController.confirmToAnotherTeam)
 
 // отклонене запроса пользоватля на переход в другую команду
 adminRoutes.delete('/declineToAnotherTeam',[
-    authMiddleware,Role(['MANAGER','ADMIN'])
+    authMiddleware,Role([Access.Manager,Access.Administrator])
 ], adminController.declineToAnotherTeam)
+
+adminRoutes.delete('/deleteUserFromTeam',[
+    authMiddleware,Role([Access.Manager,Access.Administrator])
+],adminController.deleteUserFromTeam)
 
 export default adminRoutes

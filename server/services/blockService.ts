@@ -3,7 +3,6 @@ import User from '../models/userModel';
 import ApiError from '../error/ApiError';
 
 class BlockService{
-
     
     async blockUser(id:number, reason: string, blockFlag: boolean):Promise<Banlist | ApiError>{
         let user = await User.findOne({where:{id}})
@@ -20,7 +19,7 @@ class BlockService{
         blockedUser.save();
         return blockedUser;
     }
-
+    
     async isBlocked(id:number):Promise<boolean | ApiError>{
         let user = await Banlist.findOne({where: {userId: id}})
         if(!user){

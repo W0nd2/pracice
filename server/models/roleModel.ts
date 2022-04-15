@@ -19,7 +19,8 @@ Role.init({
     userRole:{type: DataTypes.STRING},
 },{
     sequelize: db,
-    modelName:'roles'
+    modelName:'roles',
+    timestamps:false
 })
 
 Role.hasMany(User)

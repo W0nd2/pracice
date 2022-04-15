@@ -6,16 +6,6 @@ import ApiError from '../error/ApiError';
 import userService from '../services/userService';
 import fileService from '../services/fileService';
 
-// declare global {
-//     namespace Express {
-//         export interface User {
-//             id: number;
-//             email: string;
-//             login: string;
-//         }
-//     }
-// }
-
 class UserController {
     // после того как будет все готово убрать
     async roleCreate(req: express.Request, res: express.Response, next: express.NextFunction)
@@ -41,10 +31,7 @@ class UserController {
             return ApiError.internal(error);
         }
     }
-    //-------------------------------------------------------------------------------------------------------
-    
-
-    // PROFILE
+    //-----
 
     async checkProfile(req: express.Request, res: express.Response, next: express.NextFunction){
         try {
@@ -61,15 +48,12 @@ class UserController {
         }
     }
 
-
-    // USER LOGIN
-
     async changeLogin(req: express.Request, res: express.Response, next: express.NextFunction) {
         try {
             const errors = validationResult(req)
             if(!errors.isEmpty())
             {
-                return res.status(400).json({errors});
+                return res.status(400).json(errors);
             }
             const id = req.user.id
             if(!id)
@@ -85,8 +69,6 @@ class UserController {
         }
     }
 
-    // AVATAR
-
     async changeAvatar(req: express.Request ,res: express.Response, next: express.NextFunction) {
         try {
             const id = req.user.id
@@ -95,10 +77,6 @@ class UserController {
                 return ApiError.internal('Пользователь не авторизирован');
             }
             const {avatar} = req.files;
-            console.log('------------------------------------------------------')
-            console.log(typeof(avatar))
-            //let fileName = uuid.v4() + ".jpg";
-            //avatar.mv(path.resolve(__dirname, '..', 'static', fileName))
             let fileName = fileService.uploadFile(avatar)
             let user = await userService.changeAvatar(id,fileName)
             return res.json(user)
@@ -107,20 +85,17 @@ class UserController {
             return ApiError.internal(error);
         }
     }
-
-
-    // PASSWORD
+    
     async changePassword(req: express.Request, res: express.Response, next: express.NextFunction){
         try {
             const errors = validationResult(req)
             if(!errors.isEmpty())
             {
-                return res.status(400).json({errors});
+                return res.status(400).json(errors);
             }
-            const {email} = req.body;
-            console.log(email)
-            await userService.changePassword(email)
-            return res.json({message:'Письмо отправлено на почту'})
+            let {email} = req.body;
+            let message = await userService.changePassword(email)
+            return res.json({message})
         } catch (error) {
             console.log(error)
             return ApiError.internal(error);
@@ -133,24 +108,21 @@ class UserController {
             const errors = validationResult(req)
             if(!errors.isEmpty())
             {
-                return res.status(400).json({errors});
+                return res.status(400).json(errors);
             }
             const id = req.user?.id
             if(!id)
             {
-                return ApiError.internal('Пользователь не авторизирован');
+                return ApiError.internal('Пользователь не подавал заявку на смену пароля');
             }
-            const {password} = req.body
-            let user = await userService.forgotPassword(id,password)
-            //console.log(user)
-            return res.json(user)
+            const {password, token} = req.body
+            let message = await userService.forgotPassword(password, token);
+            return res.json({message})
         } catch (error) {
             console.log(error)
             return ApiError.internal(error);
         }
     }
-
-    // -------- USER --------
 }
 
 export default new UserController()

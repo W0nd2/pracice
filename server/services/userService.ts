@@ -9,7 +9,7 @@ class UserService {
 
     // PROFILE
     async checkProfile(id: number):Promise<User | ApiError>{
-        const user = await User.findOne({where: {id} })
+        const user = await User.findOne({where: {id},attributes: { exclude: ['password']}})
         if(!user)
         {
             return ApiError.internal('Пользователя с таким id не существует')
@@ -19,7 +19,7 @@ class UserService {
 
     // LOGIN
     async changeLogin(id: number, newLogin: string):Promise<User | ApiError> {
-        const user = await User.findOne({ where: { id } })
+        const user = await User.findOne({ where: { id },attributes: { exclude: ['password']}})
         if (!user) {
             return ApiError.internal('Пользователя с таким id не существует')
         }
@@ -30,7 +30,7 @@ class UserService {
 
     // AVATAR
     async changeAvatar(id: number, fileName: string):Promise<User | ApiError> {
-        const user = await User.findOne({ where: { id } })
+        const user = await User.findOne({ where: { id },attributes: { exclude: ['password']}})
         if (!user) {
             return ApiError.internal('Пользователя с таким id не существует')
         }
@@ -40,8 +40,14 @@ class UserService {
     }
 
     // PASSWORD
-    async forgotPassword(id: number, newPassword: string):Promise<User | ApiError>{
-        //console.log(newPassword)
+
+    async forgotPassword(newPassword: string, token: string):Promise<string | ApiError>{
+        let userToken = jwtService.decodeJWT(token)
+        let message = 'Пользователь сменил пароль';
+        let id:number 
+        if(typeof userToken == 'object'){
+            id= userToken.id
+        }
         let user = await User.findOne({ where: { id }})
         if (!user) {
             return ApiError.internal('Пользователя с таким ID не существует')
@@ -49,19 +55,18 @@ class UserService {
         const hashPassword = await bcrypt.hash(newPassword, 5);
         user.password = hashPassword;
         user.save();
-        return user;
+        return message;
     }
 
-    async changePassword(email: string):Promise<User | ApiError> {
-        // отправить ссылку на почту для смены пароля
+    async changePassword(email: string):Promise<string | ApiError> {
+        let message = 'Письмо отправлено не почту';
         const user = await User.findOne({where:{email}})
         if(!user){
-            return ApiError.internal('Пользователя с таким ID не существует')
+            return ApiError.internal('Пользователя с таким email не существует')
         }
         const token = jwtService.genereteJwt(user.id,user.email,user.login,String(user.roleId));
-        //переделать немного(на почту отправляеться ссылка на бек, переделать на ссылку на фронт, когда будет готов)
         mailService.sendMail(user.email, `http://127.0.0.1:5500/client/password.html#token=${token}`);
-        return user;
+        return message;
     }
 
     // -------- USER --------

@@ -20,5 +20,6 @@ UserComand.init({
     comandId:{type:DataTypes.INTEGER}
 },{
     sequelize: db,
-    modelName:'userComands'
+    modelName:'userComands',
+    timestamps:false
 })

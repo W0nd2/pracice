@@ -45,7 +45,8 @@ User.init({
     activationlink:{type: DataTypes.STRING},
 },{
     sequelize: db,
-    modelName:'users'
+    modelName:'users',
+    timestamps:false
 })
 
 User.hasMany(Banlist)
@@ -57,8 +58,8 @@ AproveList.belongsTo(User)
 User.hasOne(requestComand)
 requestComand.belongsTo(User)
 
-User.belongsToMany(Comand,{through: UserComand, foreignKey: 'userId'})//
-Comand.belongsToMany(User,{through: UserComand, foreignKey: 'comandId'})//
+User.belongsToMany(Comand,{through: UserComand, foreignKey: 'userId'})
+Comand.belongsToMany(User,{through: UserComand, foreignKey: 'comandId'})
 
 declare global {
     namespace Express {

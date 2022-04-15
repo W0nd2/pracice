@@ -2,11 +2,8 @@ function allMembers() {
     if (!localStorage.token) {
         window.location.pathname = 'api/render/login'
     }
-    //токен с локал стореджа
     let token = localStorage.getItem('token')
-    console.log(token)
 
-    //ссылка на бек с просмотром профайла пользователя
     const requestURL = 'http://localhost:5000/api/user/allMembers'
 
     let element = document.getElementById("team");
@@ -25,7 +22,6 @@ function allMembers() {
 
         xhr.onload = () => {
             let res = JSON.parse(xhr.response)
-            console.log(res)
             let firstComand = document.getElementById('firstComand-members');
             let secondComand = document.getElementById('secondComand-members');
             
@@ -50,10 +46,7 @@ function allMembers() {
                 }
                 
             }
-
-
         }
-
         xhr.onerror = () => {
             reject(xhr.response)
         }
@@ -62,12 +55,9 @@ function allMembers() {
 
 
 function joinTeam(teamId){
-    console.log(teamId)
     const requestURL = 'http://localhost:5000/api/user/newTeamMember'
 
     let token = localStorage.getItem('token')
-
-    //сделать запись токена в локал сторедж или куки
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest()
 
@@ -81,51 +71,32 @@ function joinTeam(teamId){
         const body = {
             comandId: teamId
         }
-        console.log(body)
         xhr.send(JSON.stringify(body))
 
         xhr.onload = () => {
             if (xhr.response.token != undefined) {
                 localStorage.clear()
                 localStorage.setItem('token', xhr.response.token)
-                console.log(xhr.response)
                 window.location.pathname = '/client/index.html'
             }
-            /**
-             * 
-             * 
-             * 
-             * 
-             * 
-             * 
-             * 
-             * 
-             * 
-             */
-            // сокеты
             const roomName = 'Comands infromation'
             const userRole = localStorage.getItem('role')
-            //const roomId = 1
             const message = `${userRole} присоеденисля к комнате ${roomName}, ожидает подтверждения на принятие в комaнду c ID: ${teamId}`
             
             const socketUrl = "http://localhost:8000"
             const socket = io(socketUrl)
             socket.on("connect", () => {
-                socket.emit("CREATE_OR_JOIN_ROOM", ({roomName, userRole } /* возможно передавать с локал сторедж роль пользователя*/));
+                socket.emit("CREATE_OR_JOIN_ROOM", ({roomName, userRole }));
             });
 
-            //вывод сообщения о том что пользователь присоеденился к группе
             socket.on("JOINED_ROOM", (value)=>{
-                console.log(value)
+                alert(value)
             })
         
-            //отправка сообщения на сервер
             socket.emit("SEND_ROOM_MESSAGE",{roomName, message})
         
-            //не работает получение сообщения
             socket.on("ROOM_MESSAGE",(message)=>{
-
-                console.log(message)
+                alert(message)
             })
         }
 
@@ -134,4 +105,3 @@ function joinTeam(teamId){
         }
     })
 }
-//осталось сделать запросы на блокировку пользователя, подтверждение регистрации админа, переход в другую команду, востановление пароля(посмотреть какие запросы остались)
