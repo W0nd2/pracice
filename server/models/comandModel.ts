@@ -1,6 +1,10 @@
 import {DataTypes, Model} from 'sequelize' 
 
-import db from '../database'
+import db from '../database';
+import User from './userModel';
+import UserComand from './usercomandModel';
+import requestComand from './requestcomandModel';
+
 
 
 interface ComandAtributes{
@@ -21,4 +25,3 @@ Comand.init({
     modelName:'comands',
     timestamps:false
 })
-

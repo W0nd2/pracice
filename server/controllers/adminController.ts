@@ -94,9 +94,9 @@ class AdminController{
 
     async confirmToAnotherTeam(req: express.Request, res: express.Response, next: express.NextFunction){
         try {
-            const {userLimit, offsetStart} = req.query;
+            
             const{userId, comandId} = req.body;
-            let newTeamMember = await adminService.confirmMemberToAnTeam(userId, comandId,Number(userLimit), Number(offsetStart));
+            let newTeamMember = await adminService.confirmMemberToAnTeam(userId, comandId);
             return res.json(newTeamMember);
         } catch (error) {
             console.log(error)
@@ -124,7 +124,7 @@ class AdminController{
         try {
             const {userLimit, offsetStart} = req.query;
             let queue = await adminService.allQueue(Number(userLimit), Number(offsetStart))
-            return res.json({queue})
+            return res.json({queue,total: queue.length})
         } catch (error) {
             console.log(error)
             return ApiError.internal(error);

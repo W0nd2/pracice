@@ -24,7 +24,12 @@ module.exports = {
       },
       roleId:{                                // роль на сайте
         type: Sequelize.INTEGER, 
-        defaultValue:1},                      
+        defaultValue:1,
+        references: {
+          model: 'roles',
+          key: 'id'
+        }
+      },                      
       accountType:{
         type: Sequelize.STRING, 
         defaultValue:"common"

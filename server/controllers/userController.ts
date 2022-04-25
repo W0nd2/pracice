@@ -110,11 +110,11 @@ class UserController {
             {
                 return res.status(400).json(errors);
             }
-            const id = req.user?.id
-            if(!id)
-            {
-                return ApiError.internal('Пользователь не подавал заявку на смену пароля');
-            }
+            // const id = req.user?.id
+            // if(!id)
+            // {
+                // return ApiError.internal('Пользователь не подавал заявку на смену пароля');
+            // }
             const {password, token} = req.body
             let message = await userService.forgotPassword(password, token);
             return res.json({message})

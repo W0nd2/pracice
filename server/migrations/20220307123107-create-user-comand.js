@@ -8,10 +8,18 @@ module.exports = {
         autoIncrement: true
       },
       userId:{
-        type:Sequelize.INTEGER
+        type:Sequelize.INTEGER,
+        references: {
+          model: 'users',
+          key: 'id'
+        }
       },
       comandId:{
-        type:Sequelize.INTEGER
+        type:Sequelize.INTEGER,
+        references: {
+          model: 'comands',
+          key: 'id'
+        }
       }
     });
   },

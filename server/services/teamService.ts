@@ -7,7 +7,8 @@ import blockService from '../services/blockService';
 
 class TeamService{
     async newMember(userId:number, comandId: number):Promise<requestComand | ApiError>{
-        let user = await requestComand.findOne({where: {userId}})
+        let status ='pending';
+        let user = await requestComand.findOne({where: {userId,status}})
         let userInComand = await UserComand.findOne({where: {userId}})
         let comand = await Comand.findOne({where: {id:comandId}})
         let flag = await blockService.isBlocked(userId)
@@ -52,7 +53,7 @@ class TeamService{
     async teamMembers(comandId:number, userLimit:number, offsetStart:number):Promise<Comand[] | ApiError>{
         let teamMembers =await Comand.findAll({
             where:{id:comandId},
-            include:[{model:User,attributes: { exclude: ['password']},through:{ attributes:[]}}],
+            include:[{model:User,attributes: { exclude: ['password']}}],
             limit: userLimit,
             offset: offsetStart
         })
@@ -64,7 +65,7 @@ class TeamService{
 
     async allMembers(userLimit:number, offsetStart:number):Promise<Comand[] | ApiError>{
         let members = await Comand.findAll({
-            include:[{model:User,attributes: { exclude: ['password']}}],
+            include:[{model:User,attributes: { exclude: ['password']},through:{ attributes:[]}}],
             limit: userLimit,
             offset: offsetStart
         })

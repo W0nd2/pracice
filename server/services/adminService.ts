@@ -4,6 +4,7 @@ import requestComand from '../models/requestcomandModel';
 import UserComand from '../models/usercomandModel';
 import User from '../models/userModel'
 import ApiError from '../error/ApiError'
+import Role from '../models/roleModel';
 
 class AdminService {
 
@@ -72,14 +73,13 @@ class AdminService {
         return user
     }
 
-    async confirmMemberToAnTeam(userId:number, comandId: number, userLimit:number, offsetStart:number):Promise<UserComand | ApiError>{
+    async confirmMemberToAnTeam(userId:number, comandId: number):Promise<UserComand | ApiError>{
         let user = await User.findOne({where:{id:userId}})
-        let userInReq = await requestComand.findOne({where: {userId}})
+        let userStatus ='pending';
+        let userInReq = await requestComand.findOne({where:{userId,status:userStatus}})
         let comand = await Comand.findOne({where: {id:comandId}})
         let members = await UserComand.findAndCountAll({
-            where:{comandId},
-            limit: userLimit,
-            offset: offsetStart
+            where:{comandId}
         })
         if(members.count >= 10)
         {
@@ -99,22 +99,25 @@ class AdminService {
         }
         await UserComand.destroy({where:{userId}})                    
         let newMember = await UserComand.create({userId, comandId})   
-        await requestComand.destroy({where:{userId}})                 
+        userInReq.status = 'approve';
+        userInReq.save();              
         return newMember;
     }
 
     async declineToAnotherTeam(userId:number):Promise<string | ApiError>{
-        let user:object = await User.findOne({where:{id:userId}})
+        let user = await User.findOne({where:{id:userId}})
         if(!user)
         {
             return ApiError.internal('Пользователя с таки ID не существует')
         }
-        let userInReq:object = await requestComand.findOne({where:{userId}})
+        let userStatus ='pending';
+        let userInReq = await requestComand.findOne({where:{userId,status:userStatus}})
         if(!userInReq)
         {
             return ApiError.internal('Пользователь с таки ID не состоит в очереди, возможно его уже добавили в команду')
         }
-        await requestComand.destroy({where:{userId}})
+        userInReq.status = 'decline';
+        userInReq.save();
         const message ='Пользователя не перенесли в другую команду, его заявка отклонена';
         return message;
     }
@@ -123,7 +126,9 @@ class AdminService {
         let status = 'pending';
         let queue = await requestComand.findAll({
             where: {status},
-            include: [{model:User,attributes: { exclude: ['password'] } }],
+            include: [
+                {model:User,attributes: { exclude: ['password']}},{model:Comand}
+            ],
             limit: userLimit,
             offset: offsetStart
         })
@@ -150,7 +155,8 @@ class AdminService {
     }
 
     async memberToTeam(userId:number,comandId:number, status:string):Promise<string | ApiError>{
-        let request = await requestComand.findOne({where:{userId}})
+        let userStatus ='pending';
+        let request = await requestComand.findOne({where:{userId,status:userStatus}})
         if(!request){
             return ApiError.internal('Пользователя с таки ID не состоит в очереди')
         }

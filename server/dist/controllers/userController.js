@@ -9,15 +9,6 @@ const comandModel_1 = __importDefault(require("../models/comandModel"));
 const ApiError_1 = __importDefault(require("../error/ApiError"));
 const userService_1 = __importDefault(require("../services/userService"));
 const fileService_1 = __importDefault(require("../services/fileService"));
-// declare global {
-//     namespace Express {
-//         export interface User {
-//             id: number;
-//             email: string;
-//             login: string;
-//         }
-//     }
-// }
 class UserController {
     // после того как будет все готово убрать
     async roleCreate(req, res, next) {
@@ -42,8 +33,7 @@ class UserController {
             return ApiError_1.default.internal(error);
         }
     }
-    //-------------------------------------------------------------------------------------------------------
-    // PROFILE
+    //-----
     async checkProfile(req, res, next) {
         try {
             const id = req.user.id;
@@ -58,12 +48,11 @@ class UserController {
             return ApiError_1.default.internal(error);
         }
     }
-    // USER LOGIN
     async changeLogin(req, res, next) {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
-                return res.status(400).json({ errors });
+                return res.status(400).json(errors);
             }
             const id = req.user.id;
             if (!id) {
@@ -78,7 +67,6 @@ class UserController {
             return ApiError_1.default.internal(error);
         }
     }
-    // AVATAR
     async changeAvatar(req, res, next) {
         try {
             const id = req.user.id;
@@ -86,10 +74,6 @@ class UserController {
                 return ApiError_1.default.internal('Пользователь не авторизирован');
             }
             const { avatar } = req.files;
-            console.log('------------------------------------------------------');
-            console.log(typeof (avatar));
-            //let fileName = uuid.v4() + ".jpg";
-            //avatar.mv(path.resolve(__dirname, '..', 'static', fileName))
             let fileName = fileService_1.default.uploadFile(avatar);
             let user = await userService_1.default.changeAvatar(id, fileName);
             return res.json(user);
@@ -99,17 +83,15 @@ class UserController {
             return ApiError_1.default.internal(error);
         }
     }
-    // PASSWORD
     async changePassword(req, res, next) {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
-                return res.status(400).json({ errors });
+                return res.status(400).json(errors);
             }
-            const { email } = req.body;
-            console.log(email);
-            await userService_1.default.changePassword(email);
-            return res.json({ message: 'Письмо отправлено на почту' });
+            let { email } = req.body;
+            let message = await userService_1.default.changePassword(email);
+            return res.json({ message });
         }
         catch (error) {
             console.log(error);
@@ -120,16 +102,16 @@ class UserController {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
-                return res.status(400).json({ errors });
+                return res.status(400).json(errors);
             }
-            const id = req.user?.id;
-            if (!id) {
-                return ApiError_1.default.internal('Пользователь не авторизирован');
-            }
-            const { password } = req.body;
-            let user = await userService_1.default.forgotPassword(id, password);
-            //console.log(user)
-            return res.json(user);
+            // const id = req.user?.id
+            // if(!id)
+            // {
+            // return ApiError.internal('Пользователь не подавал заявку на смену пароля');
+            // }
+            const { password, token } = req.body;
+            let message = await userService_1.default.forgotPassword(password, token);
+            return res.json({ message });
         }
         catch (error) {
             console.log(error);

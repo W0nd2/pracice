@@ -15,7 +15,6 @@ userRoutes.post('/password/change',[
 
 // изменение пароля
 userRoutes.patch('/password',[
-    authMiddleware,
     body('password', 'Incorrect password. Password must have from 5 to 25 characters').isString().isLength({min:5,max:25})
 ], userController.forgotPassword);
 
@@ -25,9 +24,9 @@ userRoutes.patch('/password',[
 // PATCH
 
 // изменение логина
-userRoutes.patch('/login/change',[
+userRoutes.patch('/login/change',
     body('newLogin','Incorrect login').isString().isLength({min:3,max:25})
-], authMiddleware, userController.changeLogin);
+, authMiddleware, userController.changeLogin);
 
 // изменение аватара
 userRoutes.patch('/avatar/change', authMiddleware, userController.changeAvatar);

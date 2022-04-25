@@ -61,6 +61,9 @@ requestComand.belongsTo(User)
 User.belongsToMany(Comand,{through: UserComand, foreignKey: 'userId'})
 Comand.belongsToMany(User,{through: UserComand, foreignKey: 'comandId'})
 
+// User.belongsToMany(Comand,{through: UserComand, foreignKey: 'camandId'})
+// Comand.belongsToMany(User,{through: UserComand, foreignKey: 'UserI'})
+
 declare global {
     namespace Express {
         export interface User {

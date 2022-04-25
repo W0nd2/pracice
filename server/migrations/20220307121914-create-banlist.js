@@ -5,9 +5,14 @@ module.exports = {
       id:{
         type: Sequelize.INTEGER, 
         primaryKey: true, 
-        autoIncrement: true},
+        autoIncrement: true
+      },
       userId:{
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'users',
+          key: 'id'
+        }
       },
       isBlocked:{                                         // поле блокировки
         type: Sequelize.BOOLEAN, 

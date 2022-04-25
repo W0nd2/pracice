@@ -9,28 +9,17 @@ const express_validator_1 = require("express-validator");
 const userController_1 = __importDefault(require("../controllers/userController"));
 const teamController_1 = __importDefault(require("../controllers/teamController"));
 const authMiddleware_1 = __importDefault(require("../middleware/authMiddleware"));
-//возможно не надо делать это
-// userRoutes.get('/checklogin', authMiddleware, userController.checkLogin);
-// userRoutes.get('/role', authMiddleware, userController.checkRole);
-//просмотр профайла своего
 userRoutes.get('/profile', authMiddleware_1.default, userController_1.default.checkProfile);
-//  password
-// запрос на отправку письма на почту
 userRoutes.post('/password/change', [
-    //body('email', 'Incorrect email').isString().isEmail()
     (0, express_validator_1.body)('email', 'Incorrect email').isEmail()
 ], userController_1.default.changePassword);
 // изменение пароля
 userRoutes.patch('/password', [
-    authMiddleware_1.default,
     (0, express_validator_1.body)('password', 'Incorrect password. Password must have from 5 to 25 characters').isString().isLength({ min: 5, max: 25 })
 ], userController_1.default.forgotPassword);
-//userRoutes.get('/team', authMiddleware, userController.checkTeam);
 // PATCH
 // изменение логина
-userRoutes.patch('/login/change', [
-    (0, express_validator_1.body)('newLogin', 'Incorrect login').isString().isLength({ min: 3, max: 25 })
-], authMiddleware_1.default, userController_1.default.changeLogin);
+userRoutes.patch('/login/change', (0, express_validator_1.body)('newLogin', 'Incorrect login').isString().isLength({ min: 3, max: 25 }), authMiddleware_1.default, userController_1.default.changeLogin);
 // изменение аватара
 userRoutes.patch('/avatar/change', authMiddleware_1.default, userController_1.default.changeAvatar);
 // TEAM

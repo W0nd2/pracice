@@ -44,10 +44,6 @@ app.use((0, express_fileupload_1.default)({}));
 app.use('/api', index_1.default);
 //последний в цепочке Middleware, отвечает за ошибки
 app.use(ErrorHandlingMidleware_1.default);
-// import Rout, {Request,Response} from 'express'
-// app.get('/index', (req:Request,res:Response)=>{
-//     res.render('index')
-// })
 exports.default = app;
 const start = async () => {
     try {

@@ -1,6 +1,7 @@
 import {DataTypes, Model} from 'sequelize' 
 
 import db from '../database'
+import Comand from './comandModel';
 
 interface requestComandAtributes{
     id:number;
@@ -28,3 +29,6 @@ requestComand.init({
     modelName:'requestComands',
     timestamps:false
 })
+
+Comand.hasOne(requestComand)
+requestComand.belongsTo(Comand)

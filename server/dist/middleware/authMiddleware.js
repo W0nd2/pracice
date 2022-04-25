@@ -8,7 +8,6 @@ function default_1(req, res, next) {
             return res.status(401).json({ message: "Пользователь не авторизован" });
         }
         const user = jwt.verify(token, process.env.SECRET_KEY);
-        //console.log(user)
         req.user = user;
         next();
     }
