@@ -13,7 +13,8 @@ interface requestComandAtributes{
 
 export default class requestComand extends Model<requestComandAtributes> {
     declare id:number;
-    declare comandName:string;
+    declare userId:number;
+    declare comandId:number;
     declare status:string;
     declare type:string;
 }

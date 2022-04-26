@@ -3,6 +3,7 @@ import ApiError from '../error/ApiError';
 import User from '../models/userModel'
 import mailService from '../services/mailService'
 import jwtService from  '../services/jwtService'
+import Token from '../models/tokenModel';
 
 class UserService {
     // -------- USER --------
@@ -44,9 +45,14 @@ class UserService {
     async forgotPassword(newPassword: string, token: string):Promise<string | ApiError>{
         let userToken = jwtService.decodeJWT(token)
         let message = 'Пользователь сменил пароль';
-        let id:number 
+        let id:number
         if(typeof userToken == 'object'){
             id= userToken.id
+        }
+
+        let changeToken = await Token.findOne({where: {userId:id}});
+        if(!changeToken){
+            return ApiError.internal('Пользователь не отправлял заявку на смену пароля')
         }
         let user = await User.findOne({ where: { id }})
         if (!user) {
@@ -55,6 +61,7 @@ class UserService {
         const hashPassword = await bcrypt.hash(newPassword, 5);
         user.password = hashPassword;
         user.save();
+        await changeToken.destroy();
         return message;
     }
 
@@ -66,6 +73,7 @@ class UserService {
         }
         const token = jwtService.genereteJwt(user.id,user.email,user.login,String(user.roleId));
         mailService.sendMail(user.email, `http://127.0.0.1:5500/client/password.html#token=${token}`);
+        Token.create({userId:user.id ,token})
         return message;
     }
 

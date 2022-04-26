@@ -6,6 +6,7 @@ import AproveList from './aprovelistModel'
 import requestComand from './requestcomandModel'
 import Comand from './comandModel'
 import UserComand from './usercomandModel'
+import Token from './tokenModel'
 
 
 interface UserAtributes{
@@ -49,20 +50,20 @@ User.init({
     timestamps:false
 })
 
-User.hasMany(Banlist)
-Banlist.belongsTo(User)
+User.hasMany(Banlist);
+Banlist.belongsTo(User);
 
-User.hasOne(AproveList)
-AproveList.belongsTo(User)
+User.hasOne(AproveList);
+AproveList.belongsTo(User);
 
-User.hasOne(requestComand)
-requestComand.belongsTo(User)
+User.hasOne(requestComand);
+requestComand.belongsTo(User);
 
-User.belongsToMany(Comand,{through: UserComand, foreignKey: 'userId'})
-Comand.belongsToMany(User,{through: UserComand, foreignKey: 'comandId'})
+User.belongsToMany(Comand,{through: UserComand, foreignKey: 'userId'});
+Comand.belongsToMany(User,{through: UserComand, foreignKey: 'comandId'});
 
-// User.belongsToMany(Comand,{through: UserComand, foreignKey: 'camandId'})
-// Comand.belongsToMany(User,{through: UserComand, foreignKey: 'UserI'})
+User.hasOne(Token);
+Token.belongsTo(User);
 
 declare global {
     namespace Express {

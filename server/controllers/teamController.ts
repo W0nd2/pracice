@@ -69,7 +69,10 @@ class TeamController{
         try {
             const {userLimit, offsetStart} = req.query;
             let teams = await teamService.allMembers(Number(userLimit), Number(offsetStart))
-            return res.json(teams)
+            if(teams instanceof ApiError){
+                return res.status(400).json(ApiError);
+            }
+            return res.json({teams,total:teams.length})
         } catch (error) {
             console.log(error)
             return ApiError.internal(error);

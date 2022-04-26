@@ -137,7 +137,7 @@ class AdminController{
             const {userLimit, offsetStart} = req.query;
             const {id} = req.body;
             const members = await adminService.getmembers(id,Number(userLimit), Number(offsetStart))
-            return res.json(members)
+            return res.json({members,total:members.length})
         } catch (error) {
             console.log(error)
             return ApiError.internal(error);
@@ -157,8 +157,8 @@ class AdminController{
 
     async memberToTeam(req: express.Request, res: express.Response, next: express.NextFunction){
         try {
-            const {userId, comandId, status} = req.body;
-            const message = await adminService.memberToTeam(userId, comandId, status);
+            const {reqId, status} = req.body;
+            const message = await adminService.memberToTeam(reqId, status);
             if(message instanceof ApiError){
                 return res.status(400).json(message);
             }

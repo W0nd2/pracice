@@ -135,8 +135,8 @@ class AdminService {
         return queue;
     }
 
-    async getmembers(comandId:number,userLimit:number, offsetStart:number){
-        let members = await UserComand.findAndCountAll({
+    async getmembers(comandId:number,userLimit:number, offsetStart:number):Promise<UserComand[]>{
+        let members = await UserComand.findAll({
             where: {comandId},
             include:[{model:User,attributes: { exclude: ['password']},through:{ attributes:[]}}],
             limit: userLimit,
@@ -154,9 +154,9 @@ class AdminService {
         return message;
     }
 
-    async memberToTeam(userId:number,comandId:number, status:string):Promise<string | ApiError>{
+    async memberToTeam(reqId:number, status:string):Promise<string | ApiError>{
         let userStatus ='pending';
-        let request = await requestComand.findOne({where:{userId,status:userStatus}})
+        let request = await requestComand.findOne({where:{id:reqId,status:userStatus}});
         if(!request){
             return ApiError.internal('Пользователя с таки ID не состоит в очереди')
         }
@@ -167,7 +167,7 @@ class AdminService {
         {
             request.status = status;
             request.save();
-            await UserComand.create({userId, comandId});
+            await UserComand.create({userId: request.userId, comandId: request.comandId});
             return 'Пользователю одобрили заявку на регистрацию в команду';
         }
         else if(status == 'decline')
